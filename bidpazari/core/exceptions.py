@@ -12,6 +12,13 @@ class BiddingErrorReason(Enum):
 
 
 class BiddingNotAllowed(Exception):
-
     def __init__(self, reason=None):
         self.reason = reason
+
+
+class InvalidPassword(Exception):
+    pass
+
+
+class InsufficientBalanceError(Exception):
+    pass
