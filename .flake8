@@ -1,0 +1,17 @@
+[flake8]
+max-line-length = 100
+max-complexity = 14
+# checks introduced by flake8 3.3.0 as mandatory but aren't enforced by PEP8 and
+# we accept them as non-violations:
+# E121 continuation line under-indented for hanging indent
+# E126 continuation line over-indented for hanging indent
+# E133 closing bracket is missing indentation
+# E241 multiple spaces after ','
+# E242 tab after ','
+# E704 multiple statements on one line (def)
+# W503 line break before binary operator
+# These we accept as valid:
+# F405 $name may be undefined, or defined from star imports: $module
+# E731 do not assign a lambda expression, use a def
+# E305 expected 2 blank lines after end of function or class
+ignore = E121,E126,E133,E241,E242,E305,E704,W503,F405,E731

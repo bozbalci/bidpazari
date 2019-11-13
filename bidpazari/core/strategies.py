@@ -3,7 +3,7 @@ from operator import itemgetter
 from threading import Thread
 from time import sleep
 
-from core.exceptions import BiddingNotAllowed, BiddingErrorReason
+from bidpazari.core.exceptions import BiddingErrorReason, BiddingNotAllowed
 
 
 class BaseBiddingStrategy:

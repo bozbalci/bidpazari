@@ -1,9 +1,10 @@
 import unittest
 from time import sleep
 
-from core.exceptions import BiddingNotAllowed, BiddingErrorReason
-from core.strategies import (IncrementBiddingStrategy, DecrementBiddingStrategy,
-                             HighestContributionBiddingStrategy)
+from bidpazari.core.exceptions import BiddingErrorReason, BiddingNotAllowed
+from bidpazari.core.strategies import (DecrementBiddingStrategy,
+                                       HighestContributionBiddingStrategy,
+                                       IncrementBiddingStrategy)
 
 
 class IncrementBiddingStrategyTestCase(unittest.TestCase):
