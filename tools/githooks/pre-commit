@@ -1,0 +1,40 @@
+#!/bin/bash
+
+RED="\033[0m[\033[0;91mFAILED\033[0m]"
+GREEN="\033[0m[\033[0;92mPASSED\033[0m]"
+
+wrap_linter() {
+    local start_time=`date +%s`
+    # Run the command passed in via "$@". Changing the encoding in LANG is necessary because the
+    # default system encoding (ascii) is causing isort to fail on some files.
+    echo LANG=en_US.UTF-8 "$@" && LANG=en_US.UTF-8 "$@"
+    local result=$?
+    local end_time=`date +%s`
+    local delta_time=`expr $end_time - $start_time`
+    if [ "${result}" -ne 0 ]; then
+        echo -e "$RED in $delta_time second(s)"
+        exit 1
+    else
+        echo -e "$GREEN in $delta_time second(s)"
+    fi
+}
+
+changed_files=(`git diff --cached --name-only`)
+python_files=()
+
+for file in "${changed_files[@]}"; do
+    if [ ! -e "$file" ]; then
+        continue
+    fi
+
+    if [[ "$file" == *.py ]]; then
+        python_files=("${python_files[@]}" "$file")
+    fi
+done
+
+echo "Linting Python with isort... "
+echo 'To autofix any errors, use isort without `-c`.'
+wrap_linter isort -c "${python_files[@]}"
+
+echo "Linting Python with flake8... "
+wrap_linter flake8 --jobs=auto "${python_files[@]}"
