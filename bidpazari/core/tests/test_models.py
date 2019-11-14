@@ -33,21 +33,22 @@ class UserTestCase(unittest.TestCase):
         self.assertIn(str(user.verification_number), output)
 
     def test_verification(self):
-        user = User(full_name='Bob Marley',
-                    email='faruk@gmail.com',
-                    password='sucukagaci')
+        with captured_output() as (out, err):
+            user = User(full_name='Bob Marley',
+                        email='faruk@gmail.com',
+                        password='sucukagaci')
 
         self.assertEqual(user.verification_status, UserVerificationStatus.UNVERIFIED)
         User.verify(user.email, user.verification_number)
         self.assertEqual(user.verification_status, UserVerificationStatus.VERIFIED)
 
     def test_change_password(self):
-        user = User(full_name='Bob Marley',
-                    email='faruk@gmail.com',
-                    password='sucukagaci')
-
         with captured_output() as (out, err):
+            user = User(full_name='Bob Marley',
+                        email='faruk@gmail.com',
+                        password='sucukagaci')
             user.change_password(new_password='foo', old_password=None)
+
         output = out.getvalue().strip()
         self.assertIn(user.password, output)
 
