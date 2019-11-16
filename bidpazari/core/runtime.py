@@ -71,12 +71,12 @@ class IncrementBiddingStrategy(BaseBiddingStrategy):
         self.highest_bidder = None
 
     def reserve_for_bid(self, bidder, amount):
-        super().reserve_for_bid(bidder, amount)
-
         if amount < self.highest_bid:
             raise BiddingNotAllowed(BiddingErrorReason.InsufficientAmount)
         if amount - self.highest_bid < self.minimum_increment:
             raise BiddingNotAllowed(BiddingErrorReason.InsufficientAmount)
+
+        super().reserve_for_bid(bidder, amount)
 
     def stop(self):
         for bidder in self.bidders:
@@ -181,10 +181,10 @@ class HighestContributionBiddingStrategy(BaseBiddingStrategy):
         self.current_price = Decimal(0.0)
 
     def reserve_for_bid(self, bidder, amount):
-        super().reserve_for_bid(bidder, amount)
-
         if amount < self.minimum_bid_amount:
             raise BiddingNotAllowed(BiddingErrorReason.InsufficientAmount)
+
+        super().reserve_for_bid(bidder, amount)
 
     def bid(self, bidder, amount):
         self.reserve_for_bid(bidder, amount)
@@ -383,7 +383,6 @@ class Auction:
         except InsufficientBalanceError:
             raise
         except BiddingNotAllowed:
-            user.unreserve_balance(amount)
             raise
 
     @property
@@ -445,7 +444,7 @@ Auction History
 
 
 class RuntimeUser:
-    def __init__(self, username, email, password_raw, *, first_name, last_name):
+    def __init__(self, username, email, password_raw, first_name, last_name):
         self.username = username
         self.email = email
         self._password = password_raw
