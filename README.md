@@ -39,6 +39,6 @@ Happy hacking!
 - [ ] Create a `sell(...)` method that wraps transaction creation
 - [ ] Fix thread blocking issue in decrement strategy
 - [ ] Fix price decrementing having an extra call upon stopping
-- [ ] Fix the unit tests
+- [x] Fix the unit tests
 
 -Fatih, Berk
