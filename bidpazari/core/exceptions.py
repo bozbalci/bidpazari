@@ -6,8 +6,12 @@ class BiddingErrorReason(Enum):
         'You must bid a higher amount!'
     )
 
-    AmountTooHigh = (
-        'Your bidding amount is too high!'
+    AuctionClosed = (
+        'The auction is closed!'
+    )
+
+    OwnAuction = (
+        'This is your own auction -- you cannot bid in it!'
     )
 
 
@@ -20,5 +24,13 @@ class InvalidPassword(Exception):
     pass
 
 
+class UserVerificationError(Exception):
+    pass
+
+
 class InsufficientBalanceError(Exception):
+    pass
+
+
+class NonPersistentObjectError(Exception):
     pass

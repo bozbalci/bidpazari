@@ -1,113 +1,185 @@
 import random
 import string
-from enum import Enum, auto
+from decimal import Decimal
 
-from bidpazari.core.exceptions import InsufficientBalanceError, InvalidPassword
-from bidpazari.core.stubs.comms import send_mail
-from bidpazari.core.stubs.persistance import UserRepository
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+from django.db.models import Sum
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
-user_repository = UserRepository()
-
-
-class UserVerificationStatus(Enum):
-    UNVERIFIED = auto()
-    VERIFIED = auto()
+from bidpazari.core.exceptions import InvalidPassword, UserVerificationError
+from bidpazari.core.managers import ItemQuerySet, UserHasItemQuerySet
 
 
-class ItemStatus(Enum):
-    ANY = auto()
-    ON_HOLD = auto()
-    ACTIVE = auto()
-    SOLD = auto()
+def generate_verification_number():
+    return str(random.randint(100000, 999999))
 
 
-class Item:
-    def __init__(self, title, description, item_type, status, image=None):
-        self.title = title
-        self.description = description
-        self.item_type = item_type
-        self.status = status
-        self.image = image
+class TimeStampedModel(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
 
 
-class User:
-    def __init__(self, full_name, email, password):
-        self.full_name = full_name
-        self.email = email
-        self.password = password
-        self.verification_status = UserVerificationStatus.UNVERIFIED
-        self.verification_number = random.randint(100000, 999999)
-        self.balance = 0.0
-        self.items = []
+class User(TimeStampedModel, AbstractUser):
+    VERIFIED = 'verified'
+    UNVERIFIED = 'unverified'
+    VERIFICATION_STATUS = [
+        (VERIFIED, 'Verified'),
+        (UNVERIFIED, 'Unverified')
+    ]
 
-        send_mail(recipient=email,
-                  subject='Welcome to Bidpazari!',
-                  message=f'Hello {self.full_name} and welcome to Bidpazari!\n\n'
-                          f'Please complete your registration by using this'
-                          f' verification number: {self.verification_number}')
-        self.save()
+    verification_status = models.CharField(max_length=16,
+                                           choices=VERIFICATION_STATUS,
+                                           default=UNVERIFIED)
+    verification_number = models.CharField(max_length=16,
+                                           default=generate_verification_number,
+                                           blank=True)
 
-    @staticmethod
-    def verify(email, verification_number):
-        user = user_repository.find_by_email(email)
-
-        if user.verification_number == verification_number:
-            user.verification_status = UserVerificationStatus.VERIFIED
-            user.save()
+    def verify(self, verification_number):
+        if self.verification_number == verification_number:
+            self.verification_status = User.VERIFIED
+            self.save()
+            self.email_user(subject='Your account was verified.',
+                            message='Welcome to Bidpazari! Your account is now verified.')
         else:
-            send_mail(recipient=email,
-                      subject='Welcome to Bidpazari!',
-                      message=f'Hello {user.full_name} and welcome to Bidpazari!\n\n'
-                              f'Apparently you didn\'t quite understand what we meant'
-                              f' in our previous email. Your verification number is:'
-                              f' {user.verification_number}')
+            raise UserVerificationError("Invalid verification number.")
 
     def change_password(self, new_password, old_password=None):
         forgotten = old_password is None
 
         if forgotten:
-            letters = string.ascii_letters + string.digits
-            self.password = ''.join(random.choice(letters) for i in range(8))
-            send_mail(recipient=self.email,
-                      subject='Your password was reset',
-                      message=f'Your new password is: {self.password}')
+            letters = string.ascii_letters + string.digits + string.punctuation
+            raw_password = ''.join(random.choice(letters) for i in range(16))
+            self.set_password(raw_password)
+            self.email_user(subject='Your password was reset',
+                            message=f'Here is your new password: {raw_password}')
             self.save()
-        elif self.password == old_password:
-            self.password = new_password
+            return raw_password
+        elif self.check_password(old_password):
+            self.set_password(new_password)
             self.save()
-            send_mail(recipient=self.email,
-                      subject='Your password was reset',
-                      message='Someone has recently changed the password of your account.\n'
-                              'If this was you, then you can disregard this email.\n'
-                              'Otherwise, well... You\'re screwed. Sorry!')
+            self.email_user(subject='Your password was changed',
+                            message='Your password was changed.')
+            return new_password
         else:
-            raise InvalidPassword
+            raise InvalidPassword('The password you entered was incorrect.')
 
-    def list_items(self, item_type=None, status=ItemStatus.ANY):
-        def filter_function(item):
-            item_type_matches = True
-            status_matches = True
+    def list_items(self, item_type=None, on_sale=None):
+        item_ids = UserHasItem.objects\
+            .filter_by_user(self)\
+            .filter_by_item_type(item_type)\
+            .filter_by_on_sale(on_sale)\
+            .values_list('item', flat=True)
 
-            if item_type:
-                item_type_matches = item.item_type == item_type
-            if status != ItemStatus.ANY:
-                status_matches = item.status == status
+        return Item.objects.filter(id__in=item_ids)
 
-            return item_type_matches and status_matches
+    @property
+    def balance(self):
+        incoming_transactions_sum = \
+            self.incoming_transactions.aggregate(Sum('amount'))['amount__sum']
+        outgoing_transactions_sum = \
+            self.outgoing_transactions.aggregate(Sum('amount'))['amount__sum']
 
-        return list(filter(filter_function, self.items))
+        if incoming_transactions_sum is None:
+            incoming_transactions_sum = Decimal(0)
+        if outgoing_transactions_sum is None:
+            outgoing_transactions_sum = Decimal(0)
+
+        return incoming_transactions_sum - outgoing_transactions_sum
 
     def add_balance(self, amount):
-        new_balance = self.balance + amount
+        """
+        Updates the user's balance by creating a new transaction.
 
-        if new_balance < 0:
-            raise InsufficientBalanceError
+        :param amount: Amount in dollars, may be negative.
+        """
+        Transaction.objects.create(amount=amount,
+                                   source=None,
+                                   destination=self,
+                                   item=None)
 
-        self.balance = new_balance
-        self.save()
+    @property
+    def transaction_history(self):
+        items_on_sale = '\n'.join(map(str, self.list_items(on_sale=True)))
 
-    """
-    Stub methods. Will be replaced in future phases.
-    """
-    def save(self):
-        user_repository.save(self)
+        all_transactions = (self.outgoing_transactions.all()
+                            | self.incoming_transactions.all())\
+            .order_by('id')
+        transactions = '\n'.join(map(str, all_transactions))
+
+        return f'''\
+Transaction History for {self.get_full_name()} (User #{self.id})
+Your Balance: {self.balance}
+
+
+Your Items On Sale
+==================
+{items_on_sale}
+
+
+Your Transaction History
+========================
+{transactions}
+'''
+
+
+@receiver(post_save, sender=User)
+def send_registration_email(sender, instance: User, **kwargs):
+    if not kwargs['created']:
+        return
+
+    instance.email_user(subject='Welcome to Bidpazari!',
+                        message=f'Hello {instance.get_full_name()} and welcome to Bidpazari!\n\n'
+                                f'Please complete your registration by using this'
+                                f' verification number: {instance.verification_number}')
+
+
+class Item(TimeStampedModel):
+    title = models.CharField(max_length=128)
+    description = models.CharField(max_length=128, blank=True)
+    item_type = models.CharField(max_length=128, blank=True)
+    on_sale = models.BooleanField(default=False)
+    image = models.ImageField(upload_to='images/%Y-%m/')
+
+    objects = ItemQuerySet.as_manager()
+
+    def __str__(self):
+        return f'Item #{self.id} - {self.title}'
+
+
+class Transaction(TimeStampedModel):
+    amount = models.DecimalField(max_digits=7, decimal_places=2, blank=False)
+    source = models.ForeignKey(User, on_delete=models.CASCADE,
+                               related_name='outgoing_transactions',
+                               blank=True, null=True)
+    destination = models.ForeignKey(User, on_delete=models.CASCADE,
+                                    related_name='incoming_transactions',
+                                    blank=False, null=True)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE,
+                             related_name='transactions',
+                             blank=True, null=True)
+
+    def __str__(self):
+        if self.source is None:
+            word = 'Deposit' if self.amount > 0 else 'Withdrawal'
+            return f'{word} #{self.id} - Amount: ${self.amount} - Time: {self.created}'
+
+        return f'Transaction #{self.id} - Amount: ${self.amount} - ' \
+               f'From: #{self.source.id} - To: #{self.destination.id} - ' \
+               f'Time: {self.created}'
+
+
+class UserHasItem(TimeStampedModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE,
+                             related_name='user_has_items',
+                             blank=False)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE,
+                             related_name='item_has_users',
+                             blank=False)
+    is_sold = models.BooleanField(default=False)
+
+    objects = UserHasItemQuerySet.as_manager()
