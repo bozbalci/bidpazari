@@ -6,6 +6,7 @@ dist:
 		-x \*__pycache__\* \
 		-x \*.sqlite3 \
 		-x \*.pyc \
+		-x \*.iml \
 
 distclean:
 	rm -f bidpazari.zip
