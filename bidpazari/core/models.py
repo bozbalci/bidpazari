@@ -135,7 +135,7 @@ class Item(TimeStampedModel):
     description = models.CharField(max_length=128, blank=True)
     item_type = models.CharField(max_length=128, blank=True)
     on_sale = models.BooleanField(default=False)
-    image = models.ImageField(upload_to="images/%Y-%m/")
+    image = models.ImageField(upload_to="images/%Y-%m/", blank=True)
 
     objects = ItemQuerySet.as_manager()
 

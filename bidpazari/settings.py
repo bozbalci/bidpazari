@@ -119,3 +119,9 @@ STATIC_URL = "/static/"
 AUTH_USER_MODEL = "core.User"
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+LOGGING = {
+    "version": 1,
+    "handlers": {"console": {"level": "INFO", "class": "logging.StreamHandler",}},
+    "loggers": {"": {"handlers": ["console"], "level": "INFO"}},
+}

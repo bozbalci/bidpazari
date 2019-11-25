@@ -118,9 +118,11 @@ class RuntimeUser:
         self.reserved_balance = Decimal(0)
 
     def connect(self):
+        # TODO connect only once
         runtime_manager.online_users.add(self)
 
     def disconnect(self):
+        # TODO disallow if not connected
         runtime_manager.online_users.remove(self)
 
     """
