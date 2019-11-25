@@ -4,7 +4,7 @@ from functools import wraps
 from django.utils.functional import cached_property
 
 from bidpazari.core.exceptions import InsufficientBalanceError, NonPersistentObjectError
-from bidpazari.core.models import User
+from bidpazari.core.models import User, UserHasItem
 from bidpazari.core.runtime.common import runtime_manager
 from bidpazari.core.runtime.watchers import ItemWatcher
 
@@ -80,6 +80,15 @@ class RuntimeUser:
         return set(self.persistent_user.list_items(item_type, on_sale))
 
     @persistent_user_proxy_method
+    def create_auction(self, item_id: int, bidding_strategy_identifier: str, **kwargs):
+        # TODO add error checks
+        uhi = UserHasItem.objects.get(user_id=self.id, item_id=item_id, is_sold=False)
+        runtime_manager.create_auction(
+            uhi=uhi, bidding_strategy_identifier=bidding_strategy_identifier, **kwargs
+        )
+        return uhi.id
+
+    @persistent_user_proxy_method
     def add_balance_transaction(self, amount):
         self.persistent_user.add_balance(amount)
         self.initial_balance = self.persistent_user.balance
@@ -88,10 +97,6 @@ class RuntimeUser:
     @persistent_user_proxy_method
     def transaction_history(self):
         return self.persistent_user.transaction_history
-
-    """
-    Runtime specific methods
-    """
 
     @staticmethod
     def register_item_watcher(callback_method, item_type=None):
@@ -122,10 +127,6 @@ class RuntimeUser:
     def disconnect(self):
         # TODO disallow if not connected
         runtime_manager.online_users.remove(self)
-
-    """
-    Magic methods
-    """
 
     def __hash__(self):
         return self.id

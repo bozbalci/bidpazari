@@ -25,6 +25,10 @@ class Auction:
         self.activity_log = []
         self.log_event("Auction created")
 
+    @property
+    def id(self):
+        return self.uhi.id
+
     @cached_property
     def owner(self):
         return self.uhi.user
@@ -74,7 +78,7 @@ class Auction:
             self.log_event("Auction reached minimum price with no bidders.")
 
         self.log_event("Removing auction from active auctions...")
-        del runtime_manager.active_auctions[self.uhi.id]  # Unregister from runtime
+        del runtime_manager.active_auctions[self.id]  # Unregister from runtime
 
     def bid(self, user: "RuntimeUser", amount=None):
         if not self.is_open:
@@ -92,6 +96,27 @@ class Auction:
 
     @property
     def auction_report(self):
+        data = self.to_json()
+
+        return f"""\
+Auction Report
+==============
+Auction Status: {data['status']}
+Bidding Strategy: {data['bidding_strategy']}
+Item: {data['item']}
+Description: {data['description']}
+Owner: {data['owner']}
+Current Price: {data['current_price']}
+{data['current_winner']}
+Winning Amount: {data['winning_amount']}
+
+
+Bidding Details
+===============
+{data['bidding_details']}
+"""
+
+    def to_json(self):
         (current_winner, winning_amount,) = self.bidding_strategy.get_current_winner_and_amount()
         bidding_strategy_name = BiddingStrategyFactory.BIDDING_STRATEGY_HUMAN_READABLE[
             self.bidding_strategy_identifier
@@ -103,23 +128,18 @@ class Auction:
         else:
             current_winner_line = "Nobody is currently winning."
 
-        return f"""\
-Auction Report
-==============
-Auction Status: {'Open' if self.is_open else 'Closed'}
-Bidding Strategy: {bidding_strategy_name}
-Item: {self.item.title}
-Description: {self.item.description}
-Owner: {self.owner.get_full_name()}
-Current Price: {self.bidding_strategy.get_current_price()}
-{current_winner_line}
-Winning Amount: {winning_amount}
-
-
-Bidding Details
-===============
-{self.bidding_strategy.get_auction_report_text()}
-"""
+        return {
+            'id': self.id,
+            'status': 'Open' if self.is_open else 'Closed',
+            'bidding_strategy': bidding_strategy_name,
+            'item': self.item.title,
+            'description': self.item.description,
+            'owner': self.owner.get_full_name(),
+            'current_price': self.bidding_strategy.get_current_price(),
+            'current_winner': current_winner_line,
+            'winning_amount': winning_amount,
+            'bidding_details': self.bidding_strategy.get_auction_report_text(),
+        }
 
     def register_user_to_updates(self, callback_method):
         auction_watcher = AuctionWatcher(callback_method)
