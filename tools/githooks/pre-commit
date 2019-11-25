@@ -32,9 +32,9 @@ for file in "${changed_files[@]}"; do
     fi
 done
 
-echo "Linting Python with isort... "
-echo 'To autofix any errors, use isort without `-c`.'
-wrap_linter isort -c "${python_files[@]}"
+# echo "Linting Python with isort... "
+# echo 'To autofix any errors, use isort without `-c`.'
+# wrap_linter isort -c "${python_files[@]}"
 
-echo "Linting Python with flake8... "
-wrap_linter flake8 --jobs=auto "${python_files[@]}"
+echo "Linting Python with black..."
+wrap_linter black --check "${python_files[@]}"

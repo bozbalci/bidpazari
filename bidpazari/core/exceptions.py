@@ -2,17 +2,9 @@ from enum import Enum
 
 
 class BiddingErrorReason(Enum):
-    InsufficientAmount = (
-        'You must bid a higher amount!'
-    )
-
-    AuctionClosed = (
-        'The auction is closed!'
-    )
-
-    OwnAuction = (
-        'This is your own auction -- you cannot bid in it!'
-    )
+    InsufficientAmount = "You must bid a higher amount!"
+    AuctionClosed = "The auction is closed!"
+    OwnAuction = "This is your own auction -- you cannot bid in it!"
 
 
 class BiddingNotAllowed(Exception):

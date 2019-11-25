@@ -4,11 +4,17 @@ from unittest.mock import Mock
 
 from django.test import TestCase
 
-from bidpazari.core.exceptions import (BiddingErrorReason, BiddingNotAllowed,
-                                       InsufficientBalanceError)
-from bidpazari.core.runtime import (DecrementBiddingStrategy,
-                                    HighestContributionBiddingStrategy,
-                                    IncrementBiddingStrategy, RuntimeUser)
+from bidpazari.core.exceptions import (
+    BiddingErrorReason,
+    BiddingNotAllowed,
+    InsufficientBalanceError,
+)
+from bidpazari.core.runtime.strategies import (
+    DecrementBiddingStrategy,
+    HighestContributionBiddingStrategy,
+    IncrementBiddingStrategy,
+)
+from bidpazari.core.runtime.user import RuntimeUser
 
 
 class IncrementBiddingStrategyTestCase(TestCase):
@@ -43,8 +49,9 @@ class IncrementBiddingStrategyTestCase(TestCase):
         strategy.stop()
 
     def test_bid_incrementing_less_than_allowed_amount_fails(self):
-        strategy = IncrementBiddingStrategy(initial_price=Decimal(3.00),
-                                            minimum_increment=Decimal(2))
+        strategy = IncrementBiddingStrategy(
+            initial_price=Decimal(3.00), minimum_increment=Decimal(2)
+        )
         strategy.auction = Mock()
         strategy.start()
 
@@ -60,9 +67,13 @@ class IncrementBiddingStrategyTestCase(TestCase):
         strategy = IncrementBiddingStrategy(initial_price=Decimal(3.00))
         strategy.auction = Mock()
         strategy.start()
-        bidder_1 = RuntimeUser(username='BillieJean', email='lover@michaeljackson.org',
-                               password_raw='the kid is micheal\'s son', first_name='Billie',
-                               last_name='Jean')
+        bidder_1 = RuntimeUser(
+            username="BillieJean",
+            email="lover@michaeljackson.org",
+            password_raw="the kid is micheal's son",
+            first_name="Billie",
+            last_name="Jean",
+        )
 
         bidder_1.initial_balance = 10
 
@@ -77,12 +88,20 @@ class IncrementBiddingStrategyTestCase(TestCase):
         strategy.start()
         self.assertEqual((None, None), strategy.get_current_winner_and_amount())
 
-        bidder_1 = RuntimeUser(username='Lover', email='lover@michaeljackson.org',
-                               password_raw='the kid is micheal\'s son', first_name='Billie',
-                               last_name='Jean')
-        bidder_2 = RuntimeUser(username='JustAGirl', email='justagirl@michaeljackson.org',
-                               password_raw='the kid is not my son', first_name='Billie',
-                               last_name='Jean')
+        bidder_1 = RuntimeUser(
+            username="Lover",
+            email="lover@michaeljackson.org",
+            password_raw="the kid is micheal's son",
+            first_name="Billie",
+            last_name="Jean",
+        )
+        bidder_2 = RuntimeUser(
+            username="JustAGirl",
+            email="justagirl@michaeljackson.org",
+            password_raw="the kid is not my son",
+            first_name="Billie",
+            last_name="Jean",
+        )
 
         bidder_1.persistent_user = Mock(id=1)
         bidder_2.persistent_user = Mock(id=2)
@@ -98,7 +117,9 @@ class IncrementBiddingStrategyTestCase(TestCase):
         strategy.bid(bidder=bidder_1, amount=Decimal(6))
         strategy.stop()
 
-        self.assertEqual((bidder_1, Decimal(6)), strategy.get_current_winner_and_amount())
+        self.assertEqual(
+            (bidder_1, Decimal(6)), strategy.get_current_winner_and_amount()
+        )
 
 
 class DecrementBiddingStrategyTestCase(TestCase):
@@ -112,7 +133,9 @@ class DecrementBiddingStrategyTestCase(TestCase):
         strategy.bid(bidder_1)
         strategy.stop()
 
-        self.assertEqual(strategy.get_current_winner_and_amount(), (bidder_1, Decimal(3)))
+        self.assertEqual(
+            strategy.get_current_winner_and_amount(), (bidder_1, Decimal(3))
+        )
 
     def test_get_current_price_at_different_samples(self):
         tick_ms = 10
@@ -127,8 +150,9 @@ class DecrementBiddingStrategyTestCase(TestCase):
             price_samples.add(strategy.get_current_price())
             sleep(half_tick_ms / 1000)
 
-        self.assertLessEqual({Decimal(5), Decimal(4), Decimal(3), Decimal(2), Decimal(1)},
-                             price_samples)
+        self.assertLessEqual(
+            {Decimal(5), Decimal(4), Decimal(3), Decimal(2), Decimal(1)}, price_samples
+        )
 
         strategy.stop()
 
@@ -148,17 +172,26 @@ class HighestContributionBiddingStrategyTestCase(TestCase):
         strategy.stop()
 
     def test_bid_higher_than_maximum_price_fails(self):
-        strategy = HighestContributionBiddingStrategy(minimum_bid_amount=Decimal(5),
-                                                      maximum_price=Decimal(100))
+        strategy = HighestContributionBiddingStrategy(
+            minimum_bid_amount=Decimal(5), maximum_price=Decimal(100)
+        )
         strategy.auction = Mock()
         strategy.start()
 
-        bidder_1 = RuntimeUser(username='Lover', email='lover@michaeljackson.org',
-                               password_raw='the kid is micheal\'s son', first_name='Billie',
-                               last_name='Jean')
-        bidder_2 = RuntimeUser(username='JustAGirl', email='justagirl@michaeljackson.org',
-                               password_raw='the kid is not my son', first_name='Billie',
-                               last_name='Jean')
+        bidder_1 = RuntimeUser(
+            username="Lover",
+            email="lover@michaeljackson.org",
+            password_raw="the kid is micheal's son",
+            first_name="Billie",
+            last_name="Jean",
+        )
+        bidder_2 = RuntimeUser(
+            username="JustAGirl",
+            email="justagirl@michaeljackson.org",
+            password_raw="the kid is not my son",
+            first_name="Billie",
+            last_name="Jean",
+        )
 
         bidder_1.persistent_user = Mock(id=1)
         bidder_2.persistent_user = Mock(id=2)
@@ -171,17 +204,26 @@ class HighestContributionBiddingStrategyTestCase(TestCase):
             strategy.bid(bidder=bidder_2, amount=Decimal(40))
 
     def test_get_current_winner_and_amount(self):
-        strategy = HighestContributionBiddingStrategy(minimum_bid_amount=Decimal(5),
-                                                      maximum_price=Decimal(150))
+        strategy = HighestContributionBiddingStrategy(
+            minimum_bid_amount=Decimal(5), maximum_price=Decimal(150)
+        )
         strategy.auction = Mock()
         strategy.start()
 
-        bidder_1 = RuntimeUser(username='Lover', email='lover@michaeljackson.org',
-                               password_raw='the kid is micheal\'s son', first_name='Billie',
-                               last_name='Jean')
-        bidder_2 = RuntimeUser(username='JustAGirl', email='justagirl@michaeljackson.org',
-                               password_raw='the kid is not my son', first_name='Billie',
-                               last_name='Jean')
+        bidder_1 = RuntimeUser(
+            username="Lover",
+            email="lover@michaeljackson.org",
+            password_raw="the kid is micheal's son",
+            first_name="Billie",
+            last_name="Jean",
+        )
+        bidder_2 = RuntimeUser(
+            username="JustAGirl",
+            email="justagirl@michaeljackson.org",
+            password_raw="the kid is not my son",
+            first_name="Billie",
+            last_name="Jean",
+        )
 
         bidder_1.persistent_user = Mock(id=1)
         bidder_2.persistent_user = Mock(id=2)
@@ -192,10 +234,16 @@ class HighestContributionBiddingStrategyTestCase(TestCase):
         self.assertEqual(strategy.get_current_price(), Decimal(0))
 
         strategy.bid(bidder=bidder_1, amount=Decimal(40))
-        self.assertEqual(strategy.get_current_winner_and_amount(), (bidder_1, Decimal(40)))
+        self.assertEqual(
+            strategy.get_current_winner_and_amount(), (bidder_1, Decimal(40))
+        )
 
         strategy.bid(bidder=bidder_1, amount=Decimal(20))
-        self.assertEqual(strategy.get_current_winner_and_amount(), (bidder_1, Decimal(60)))
+        self.assertEqual(
+            strategy.get_current_winner_and_amount(), (bidder_1, Decimal(60))
+        )
 
         strategy.bid(bidder=bidder_2, amount=Decimal(50))
-        self.assertEqual(strategy.get_current_winner_and_amount(), (bidder_1, Decimal(60)))
+        self.assertEqual(
+            strategy.get_current_winner_and_amount(), (bidder_1, Decimal(60))
+        )

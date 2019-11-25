@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bidpazari.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "bidpazari.settings")
 
 application = get_wsgi_application()
