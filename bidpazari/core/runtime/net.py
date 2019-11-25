@@ -10,7 +10,6 @@ from bidpazari.core.models import User
 from bidpazari.core.runtime.exceptions import CommandFailed
 from bidpazari.core.runtime.user import RuntimeUser
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -97,9 +96,7 @@ def start_pazar():
         new_socket, client_address = sock.accept()
         logger.info(f"New connection: {client_address}")
 
-        thread = threading.Thread(
-            target=handle_connection, args=(new_socket, client_address)
-        )
+        thread = threading.Thread(target=handle_connection, args=(new_socket, client_address))
         thread.start()
 
 

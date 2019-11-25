@@ -18,9 +18,7 @@ class Auction:
     def __init__(self, uhi: UserHasItem, bidding_strategy_identifier: str, **kwargs):
         self.uhi = uhi
         self.bidding_strategy_identifier = bidding_strategy_identifier
-        self.bidding_strategy = BiddingStrategyFactory.get(
-            bidding_strategy_identifier, **kwargs
-        )
+        self.bidding_strategy = BiddingStrategyFactory.get(bidding_strategy_identifier, **kwargs)
         self.bidding_strategy.auction = self
         self.is_open = False
         self.auction_watchers = []
@@ -71,9 +69,7 @@ class Auction:
             self.uhi.is_sold = True
             self.uhi.save()
 
-            self.log_event(
-                f"Winner: {winner.persistent_user.get_full_name()} for amount: {amount}"
-            )
+            self.log_event(f"Winner: {winner.persistent_user.get_full_name()} for amount: {amount}")
         else:
             self.log_event("Auction reached minimum price with no bidders.")
 
@@ -96,10 +92,7 @@ class Auction:
 
     @property
     def auction_report(self):
-        (
-            current_winner,
-            winning_amount,
-        ) = self.bidding_strategy.get_current_winner_and_amount()
+        (current_winner, winning_amount,) = self.bidding_strategy.get_current_winner_and_amount()
         bidding_strategy_name = BiddingStrategyFactory.BIDDING_STRATEGY_HUMAN_READABLE[
             self.bidding_strategy_identifier
         ]

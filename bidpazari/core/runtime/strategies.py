@@ -34,9 +34,7 @@ class BaseBiddingStrategy:
         pass
 
     def bid(self, bidder, amount):
-        self.auction.log_event(
-            f"{bidder.persistent_user.get_full_name()} made a bid: {amount}"
-        )
+        self.auction.log_event(f"{bidder.persistent_user.get_full_name()} made a bid: {amount}")
         self.auction.on_bidding_updated(event_type="bid_received")
         self.bidders.add(bidder)
         self.bidding_history.append((bidder, amount))
@@ -52,9 +50,7 @@ class BaseBiddingStrategy:
 
 
 class IncrementBiddingStrategy(BaseBiddingStrategy):
-    def __init__(
-        self, initial_price, minimum_increment=Decimal(1.0), maximum_price=None
-    ):
+    def __init__(self, initial_price, minimum_increment=Decimal(1.0), maximum_price=None):
         super().__init__()
         self.minimum_increment = minimum_increment
         self.maximum_price = maximum_price
@@ -124,9 +120,7 @@ class DecrementBiddingStrategy(BaseBiddingStrategy):
         self.decrement_flag = False
 
     def _decrement_price(self):
-        should_decrement = lambda: self.decrement_flag and (
-            self.current_price > self.minimum_price
-        )
+        should_decrement = lambda: self.decrement_flag and (self.current_price > self.minimum_price)
         tick_s = self.tick_ms / 1000
 
         while should_decrement():

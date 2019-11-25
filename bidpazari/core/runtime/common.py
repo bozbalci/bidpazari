@@ -7,9 +7,7 @@ class RuntimeManager:
         self.item_watchers = []
         self.online_users = set()
 
-    def create_auction(
-        self, uhi: UserHasItem, bidding_strategy_identifier: str, **kwargs
-    ):
+    def create_auction(self, uhi: UserHasItem, bidding_strategy_identifier: str, **kwargs):
         from bidpazari.core.runtime.auction import Auction
 
         auction = Auction(

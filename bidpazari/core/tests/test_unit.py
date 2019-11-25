@@ -117,9 +117,7 @@ class IncrementBiddingStrategyTestCase(TestCase):
         strategy.bid(bidder=bidder_1, amount=Decimal(6))
         strategy.stop()
 
-        self.assertEqual(
-            (bidder_1, Decimal(6)), strategy.get_current_winner_and_amount()
-        )
+        self.assertEqual((bidder_1, Decimal(6)), strategy.get_current_winner_and_amount())
 
 
 class DecrementBiddingStrategyTestCase(TestCase):
@@ -133,9 +131,7 @@ class DecrementBiddingStrategyTestCase(TestCase):
         strategy.bid(bidder_1)
         strategy.stop()
 
-        self.assertEqual(
-            strategy.get_current_winner_and_amount(), (bidder_1, Decimal(3))
-        )
+        self.assertEqual(strategy.get_current_winner_and_amount(), (bidder_1, Decimal(3)))
 
     def test_get_current_price_at_different_samples(self):
         tick_ms = 10
@@ -234,16 +230,10 @@ class HighestContributionBiddingStrategyTestCase(TestCase):
         self.assertEqual(strategy.get_current_price(), Decimal(0))
 
         strategy.bid(bidder=bidder_1, amount=Decimal(40))
-        self.assertEqual(
-            strategy.get_current_winner_and_amount(), (bidder_1, Decimal(40))
-        )
+        self.assertEqual(strategy.get_current_winner_and_amount(), (bidder_1, Decimal(40)))
 
         strategy.bid(bidder=bidder_1, amount=Decimal(20))
-        self.assertEqual(
-            strategy.get_current_winner_and_amount(), (bidder_1, Decimal(60))
-        )
+        self.assertEqual(strategy.get_current_winner_and_amount(), (bidder_1, Decimal(60)))
 
         strategy.bid(bidder=bidder_2, amount=Decimal(50))
-        self.assertEqual(
-            strategy.get_current_winner_and_amount(), (bidder_1, Decimal(60))
-        )
+        self.assertEqual(strategy.get_current_winner_and_amount(), (bidder_1, Decimal(60)))

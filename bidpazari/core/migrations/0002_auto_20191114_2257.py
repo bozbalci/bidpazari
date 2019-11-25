@@ -21,10 +21,7 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID",
                     ),
                 ),
                 ("created", models.DateTimeField(auto_now_add=True)),
@@ -41,15 +38,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="user",
             name="created",
-            field=models.DateTimeField(
-                auto_now_add=True, default=django.utils.timezone.now
-            ),
+            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name="user",
-            name="modified",
-            field=models.DateTimeField(auto_now=True),
+            model_name="user", name="modified", field=models.DateTimeField(auto_now=True),
         ),
         migrations.AddField(
             model_name="user",
@@ -75,10 +68,7 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID",
                     ),
                 ),
                 ("created", models.DateTimeField(auto_now_add=True)),
@@ -109,10 +99,7 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID",
                     ),
                 ),
                 ("created", models.DateTimeField(auto_now_add=True)),
