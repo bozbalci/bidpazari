@@ -1,0 +1,44 @@
+# Python CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-python/ for more details
+#
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.8.0
+
+    working_directory: ~/bidpazari
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - deps-{{ checksum "poetry.lock" }}
+
+      - run:
+          name: install dependencies
+          command: |
+            poetry install
+
+      - save_cache:
+          paths:
+            - /home/circleci/.cache/pypoetry/virtualenvs
+          key: deps-{{ checksum "poetry.lock" }}
+
+      - run:
+          name: Python linters
+          command: |
+            poetry run isort -rc bidpazari
+            poetry run black --check bidpazari
+
+      - run:
+          name: run tests
+          command: |
+            poetry run ./manage.py test
+
+      - store_artifacts:
+          path: test-reports
+          destination: test-reports
