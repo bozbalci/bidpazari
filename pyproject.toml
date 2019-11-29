@@ -13,6 +13,7 @@ python = "^3.8"
 Django = "=2.2.7"
 Pillow = "=6.2.1"
 django-webpack-loader = "^0.6.0"
+websockets = "^8.1"
 
 [tool.poetry.dev-dependencies]
 black = "=19.10b0"
