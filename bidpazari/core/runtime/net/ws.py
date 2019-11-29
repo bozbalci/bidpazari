@@ -6,14 +6,13 @@ from json import JSONDecodeError
 import websockets
 from django.core.serializers.json import DjangoJSONEncoder
 
-from bidpazari.core.runtime.net.constants import CommandCode, WS_CONFIG
+from bidpazari.core.runtime.net.constants import WS_CONFIG, CommandCode
 from bidpazari.core.runtime.net.exceptions import InvalidCommand
 from bidpazari.core.runtime.net.protocol import (
     CommandContext,
     extract_request_data,
     get_command_by_identifier,
 )
-
 
 logger = logging.getLogger(__name__)
 

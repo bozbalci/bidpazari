@@ -21,8 +21,12 @@
     "@babel/core": "^7.7.4",
     "babel": "^6.23.0",
     "babel-loader": "^8.0.6",
+    "prettier": "^1.19.1",
     "webpack": "^4.41.2",
     "webpack-bundle-tracker": "^0.4.3",
     "webpack-cli": "^3.3.10"
+  },
+  "dependencies": {
+    "jquery": "^3.4.1"
   }
 }

@@ -1,7 +1,7 @@
 from django.urls import path
 
-from bidpazari.core.views import TCPClientView
+from bidpazari.core.views import WSClientView
 
 urlpatterns = [
-    path("tcp_client/", TCPClientView.as_view()),
+    path("ws_client/", WSClientView.as_view()),
 ]

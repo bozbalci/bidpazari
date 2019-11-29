@@ -21,6 +21,7 @@ wrap_linter() {
 
 changed_files=(`git diff --cached --name-only`)
 python_files=()
+javascript_files=()
 
 for file in "${changed_files[@]}"; do
     if [ ! -e "$file" ]; then
@@ -30,11 +31,18 @@ for file in "${changed_files[@]}"; do
     if [[ "$file" == *.py ]]; then
         python_files=("${python_files[@]}" "$file")
     fi
+
+    if [[ "$file" == *.js ]]; then
+        javascript_files=("${javascript_files[@]}" "$file")
+    fi
 done
 
-# echo "Linting Python with isort... "
-# echo 'To autofix any errors, use isort without `-c`.'
-# wrap_linter isort -c "${python_files[@]}"
+echo "Linting Python with isort... "
+echo 'To autofix any errors, use isort without `-c`.'
+wrap_linter isort -c "${python_files[@]}"
 
 echo "Linting Python with black..."
 wrap_linter black --check "${python_files[@]}"
+
+echo "Linting JavaScript with Prettier..."
+wrap_linter prettier --check "${javascript_files[@]}"

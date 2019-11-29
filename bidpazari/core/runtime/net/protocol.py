@@ -2,17 +2,16 @@ from decimal import Decimal
 from typing import Union
 
 from bidpazari.core.exceptions import (
+    BiddingNotAllowed,
     InvalidPassword,
     UserVerificationError,
-    BiddingNotAllowed,
 )
 from bidpazari.core.models import User
 from bidpazari.core.runtime.common import runtime_manager
 from bidpazari.core.runtime.exceptions import AuctionDoesNotExist
-from bidpazari.core.runtime.net.exceptions import CommandFailed, InvalidCommand
 from bidpazari.core.runtime.net.decorators import command, login_required
+from bidpazari.core.runtime.net.exceptions import CommandFailed, InvalidCommand
 from bidpazari.core.runtime.user import RuntimeUser
-
 
 COMMANDS = {}
 

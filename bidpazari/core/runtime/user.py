@@ -3,7 +3,10 @@ from functools import wraps
 
 from django.utils.functional import cached_property
 
-from bidpazari.core.exceptions import InsufficientBalanceError, NonPersistentObjectError
+from bidpazari.core.exceptions import (
+    InsufficientBalanceError,
+    NonPersistentObjectError,
+)
 from bidpazari.core.models import User, UserHasItem
 from bidpazari.core.runtime.common import runtime_manager
 from bidpazari.core.runtime.watchers import ItemWatcher

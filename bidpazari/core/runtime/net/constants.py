@@ -1,6 +1,5 @@
 from enum import IntEnum
 
-
 TCP_CONFIG = {
     'HOST': '',
     'PORT': 6659,
