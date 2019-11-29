@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Union
+from typing import Optional, Union
 
 from bidpazari.core.exceptions import (
     BiddingNotAllowed,
@@ -141,7 +141,9 @@ def add_balance(context: CommandContext, amount: Union[Decimal, float]):
 
 @command("list_items")
 @login_required
-def list_items(context: CommandContext):
+def list_items(
+    context: CommandContext, item_type: Optional[str], on_sale: Optional[bool]
+):
     user = context.runtime_user
     return {
         "items": [
@@ -151,7 +153,7 @@ def list_items(context: CommandContext):
                 "description": item.description,
                 "on_sale": item.on_sale,
             }
-            for item in user.list_items()
+            for item in user.list_items(item_type=item_type, on_sale=on_sale)
         ]
     }
 

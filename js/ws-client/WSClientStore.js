@@ -117,11 +117,11 @@ export default class WSClientStore {
     this._sendCommand("view_transaction_history", {});
   }
 
-  createAuction(item_id, bidding_strategy_identifier, ...params) {
+  createAuction(item_id, bidding_strategy_identifier, additionalParams) {
     this._sendCommand("create_auction", {
       item_id,
       bidding_strategy_identifier,
-      ...params
+      ...additionalParams
     });
   }
 
