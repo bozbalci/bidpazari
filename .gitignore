@@ -82,3 +82,10 @@ Icon
 
 # Thumbnails
 ._*
+
+# JavaScript
+node_modules/
+
+### Webpack ###
+webpack-stats.json
+static/bundles/
