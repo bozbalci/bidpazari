@@ -13,7 +13,9 @@ def persistent_user_proxy_method(fn):
     @wraps(fn)
     def wrapper(self, *args, **kwargs):
         if not self.persistent_user:
-            raise NonPersistentObjectError(f"{fn.__name__} must be called on a persisted user")
+            raise NonPersistentObjectError(
+                f"{fn.__name__} must be called on a persisted user"
+            )
         return fn(self, *args, **kwargs)
 
     return wrapper

@@ -10,7 +10,11 @@ from typing import Union
 
 from django.core.serializers.json import DjangoJSONEncoder
 
-from bidpazari.core.exceptions import BiddingNotAllowed, InvalidPassword, UserVerificationError
+from bidpazari.core.exceptions import (
+    BiddingNotAllowed,
+    InvalidPassword,
+    UserVerificationError,
+)
 from bidpazari.core.models import User
 from bidpazari.core.runtime.common import runtime_manager
 from bidpazari.core.runtime.constants import (
@@ -20,7 +24,11 @@ from bidpazari.core.runtime.constants import (
     BUFFER_SIZE,
     CommandCode,
 )
-from bidpazari.core.runtime.exceptions import CommandFailed, InvalidCommand, AuctionDoesNotExist
+from bidpazari.core.runtime.exceptions import (
+    CommandFailed,
+    InvalidCommand,
+    AuctionDoesNotExist,
+)
 from bidpazari.core.runtime.user import RuntimeUser
 
 logger = logging.getLogger(__name__)
@@ -219,7 +227,9 @@ def create_auction(
             kwargs[key] = Decimal(value)
 
     auction_id = user.create_auction(
-        item_id=item_id, bidding_strategy_identifier=bidding_strategy_identifier, **kwargs
+        item_id=item_id,
+        bidding_strategy_identifier=bidding_strategy_identifier,
+        **kwargs,
     )
     auction = runtime_manager.active_auctions[auction_id]
     return {'auction': {**auction.to_json()}}
@@ -234,7 +244,9 @@ def start_auction(context: CommandContext, auction_id: int):
     if user.id == auction.owner.id:
         auction.start()
     else:
-        raise CommandFailed("You must be the owner of the auction to perform this action.")
+        raise CommandFailed(
+            "You must be the owner of the auction to perform this action."
+        )
     return {'auction': {**auction.to_json()}}
 
 
@@ -264,7 +276,9 @@ def sell(context: CommandContext, auction_id: int):
         if user.id == auction.owner.id:
             auction.sell()
         else:
-            raise CommandFailed("You must be the owner of the auction to perform this action.")
+            raise CommandFailed(
+                "You must be the owner of the auction to perform this action."
+            )
     except AuctionDoesNotExist as e:
         raise CommandFailed(f"Could not end auction: {e}")
     return {'auction': {**auction.to_json()}}
@@ -303,7 +317,9 @@ def start_pazar():
         new_socket, client_address = server_sock.accept()
         logger.info(f"New connection: {client_address}")
 
-        thread = threading.Thread(target=handle_commands, args=(new_socket, client_address))
+        thread = threading.Thread(
+            target=handle_commands, args=(new_socket, client_address)
+        )
         thread.start()
 
 
@@ -331,7 +347,9 @@ def get_command_by_identifier(command_identifier):
 
 
 def encode_response(response_dict):
-    response_str = json.dumps(response_dict, indent=4, sort_keys=True, cls=DjangoJSONEncoder)
+    response_str = json.dumps(
+        response_dict, indent=4, sort_keys=True, cls=DjangoJSONEncoder
+    )
     return response_str.encode()  # convert str to bytes
 
 
