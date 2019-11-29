@@ -35,7 +35,9 @@ class User(TimeStampedModel, AbstractUser):
     )
 
     def verify(self, verification_number):
-        if self.verification_number == verification_number:
+        if self.verification_status == User.VERIFIED:
+            raise UserVerificationError("User is already verified.")
+        elif self.verification_number == verification_number:
             self.verification_status = User.VERIFIED
             self.save()
             self.email_user(

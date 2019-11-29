@@ -6,31 +6,43 @@ import threading
 from decimal import Decimal
 from functools import wraps
 from json import JSONDecodeError
+from typing import Union
 
 from django.core.serializers.json import DjangoJSONEncoder
 
-from bidpazari.core.exceptions import BiddingNotAllowed
+from bidpazari.core.exceptions import BiddingNotAllowed, InvalidPassword, UserVerificationError
 from bidpazari.core.models import User
 from bidpazari.core.runtime.common import runtime_manager
-from bidpazari.core.runtime.exceptions import CommandFailed
+from bidpazari.core.runtime.constants import (
+    SERVER_HOST,
+    SERVER_PORT,
+    TCP_BACKLOG,
+    BUFFER_SIZE,
+    CommandCode,
+)
+from bidpazari.core.runtime.exceptions import CommandFailed, InvalidCommand, AuctionDoesNotExist
 from bidpazari.core.runtime.user import RuntimeUser
 
 logger = logging.getLogger(__name__)
 
 server_sock = None
 
-SERVER_HOST = ""
-SERVER_PORT = 6659
-
-TCP_BACKLOG = 5
-BUFFER_SIZE = 1000
-
 # Registrations handled via @command(...) decorator
 COMMANDS = {}
 
 
+class CommandContext:
+    """
+    Container class for everything required to run a command. Passed as the first parameter
+    of every command function.
+    """
+
+    def __init__(self, runtime_user: RuntimeUser = None):
+        self.runtime_user = runtime_user
+
+
 class command:
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
 
     def __call__(self, func):
@@ -38,9 +50,14 @@ class command:
         def wrapper(*args, **kwargs):
             try:
                 result_dict = func(*args, **kwargs)
-                return {"code": 0, "result": {**result_dict}}
+                return {"code": CommandCode.OK, "result": {**result_dict}}
             except CommandFailed as e:
-                return {"code": 1, "error": {"message": str(e)}}
+                return {"code": CommandCode.ERROR, "error": {"message": str(e)}}
+            except Exception as e:
+                return {
+                    "code": CommandCode.FATAL,
+                    "error": {"exception": e.__class__.__name__, "message": str(e)},
+                }
 
         # Register command to COMMANDS
         COMMANDS[self.name] = wrapper
@@ -50,28 +67,125 @@ class command:
 def login_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        runtime_user, *_ = args
+        context, *_ = args
 
-        if not runtime_user:
+        if not context.runtime_user:
             raise CommandFailed("You must log in to perform this action.")
-
         return func(*args, **kwargs)
 
     return wrapper
 
 
+@command("create_user")
+def create_user(
+    context: CommandContext,
+    username: str,
+    password: str,
+    email: str,
+    first_name: str,
+    last_name: str,
+):
+    """
+    Creates an user and immediately logs in.
+    """
+    user = User.objects.create_user(
+        username=username,
+        password=password,
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+    )
+    runtime_user = RuntimeUser.from_persistent_user(user)
+    context.runtime_user = runtime_user
+    return {'user': {'id': user.id}}
+
+
+@command("login")
+def login(context: CommandContext, username: str, password: str):
+    if context.runtime_user:
+        raise CommandFailed("You are already logged in!")
+
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        raise CommandFailed("Incorrect username or password.")
+
+    if user.check_password(password):
+        runtime_user = RuntimeUser.from_persistent_user(user)
+    else:
+        raise CommandFailed("Incorrect username or password.")
+
+    runtime_user.connect()
+    context.runtime_user = runtime_user
+    return {"user": {"id": runtime_user.id}}
+
+
+@command("change_password")
+@login_required
+def change_password(context: CommandContext, new_password: str, old_password: str):
+    """
+    Used for changing the password of an already logged in user. If the password is forgotten,
+    use the "reset_password" command.
+    """
+    if old_password is None:
+        raise CommandFailed("You must provide your old password in order to change it.")
+
+    user = context.runtime_user
+
+    try:
+        user.change_password(new_password, old_password)
+    except InvalidPassword:
+        raise CommandFailed("Invalid password.")
+
+    return {'message': 'Your password has been changed.'}
+
+
+@command("reset_password")
+def reset_password(context: CommandContext, email: str):
+    try:
+        user = User.objects.get(email=email)
+        user.change_password(new_password=None, old_password=None)
+    finally:
+        return {
+            'message': 'If an user with the given email exists, then we have sent an email with the new password.'
+        }
+
+
+@command("verify")
+@login_required
+def verify(context: CommandContext, verification_number):
+    user = context.runtime_user
+
+    try:
+        user.verify(verification_number)
+    except UserVerificationError as e:
+        raise CommandFailed(f"Verification failed: {e}")
+
+    return {'message': 'You have successfully verified your email address.'}
+
+
+@command("logout")
+@login_required
+def logout(context: CommandContext):
+    user = context.runtime_user
+    user.disconnect()
+    context.runtime_user = None
+    return {}
+
+
 @command("add_balance")
 @login_required
-def add_balance(user: RuntimeUser, amount):
+def add_balance(context: CommandContext, amount: Union[Decimal, float]):
+    user = context.runtime_user
     amount = Decimal(amount)
     user.add_balance_transaction(amount)
-
     return {"current_balance": user.initial_balance}
 
 
 @command("list_items")
 @login_required
-def list_items(user: RuntimeUser):
+def list_items(context: CommandContext):
+    user = context.runtime_user
     return {
         "items": [
             {
@@ -87,13 +201,18 @@ def list_items(user: RuntimeUser):
 
 @command("view_transaction_history")
 @login_required
-def view_transaction_history(user: RuntimeUser):
+def view_transaction_history(context: CommandContext):
+    user = context.runtime_user
     return {"history": user.transaction_history}
 
 
 @command("create_auction")
 @login_required
-def create_auction(user: RuntimeUser, item_id: int, bidding_strategy_identifier: str, **kwargs):
+def create_auction(
+    context: CommandContext, item_id: int, bidding_strategy_identifier: str, **kwargs
+):
+    user = context.runtime_user
+
     # Coerce all floats to decimals
     for key, value in kwargs.items():
         if isinstance(value, float):
@@ -103,65 +222,71 @@ def create_auction(user: RuntimeUser, item_id: int, bidding_strategy_identifier:
         item_id=item_id, bidding_strategy_identifier=bidding_strategy_identifier, **kwargs
     )
     auction = runtime_manager.active_auctions[auction_id]
-
-    print(auction.to_json())
-
     return {'auction': {**auction.to_json()}}
 
 
 @command("start_auction")
 @login_required
-def start_auction(user: RuntimeUser, auction_id: int):
+def start_auction(context: CommandContext, auction_id: int):
+    user = context.runtime_user
     auction = runtime_manager.active_auctions[auction_id]
 
     if user.id == auction.owner.id:
         auction.start()
     else:
         raise CommandFailed("You must be the owner of the auction to perform this action.")
-
     return {'auction': {**auction.to_json()}}
 
 
 @command("bid")
 @login_required
-def bid(user: RuntimeUser, auction_id: int, amount: float):
-    auction = runtime_manager.active_auctions[auction_id]
+def bid(context: CommandContext, auction_id: int, amount: float):
+    user = context.runtime_user
     amount = Decimal(amount)
 
     try:
+        auction = runtime_manager.get_auction_by_id(auction_id)
         auction.bid(user, amount)
+    except AuctionDoesNotExist as e:
+        raise CommandFailed(f"Could not bid in auction: {e}")
     except BiddingNotAllowed as e:
-        raise CommandFailed(f"Bidding not allowed: {e.reason}")
-
+        raise CommandFailed(f"Bidding not allowed: {e.reason.value}")
     return {'auction': {**auction.to_json()}}
 
 
 @command("sell")
 @login_required
-def sell(user: RuntimeUser, auction_id: int):
-    auction = runtime_manager.active_auctions[auction_id]
+def sell(context: CommandContext, auction_id: int):
+    user = context.runtime_user
 
-    if user.id == auction.owner.id:
-        auction.sell()
-    else:
-        raise CommandFailed("You must be the owner of the auction to perform this action.")
-
+    try:
+        auction = runtime_manager.get_auction_by_id(auction_id)
+        if user.id == auction.owner.id:
+            auction.sell()
+        else:
+            raise CommandFailed("You must be the owner of the auction to perform this action.")
+    except AuctionDoesNotExist as e:
+        raise CommandFailed(f"Could not end auction: {e}")
     return {'auction': {**auction.to_json()}}
 
 
 @command("view_auction_report")
 @login_required
-def view_auction_report(user: RuntimeUser, auction_id: int):
-    auction = runtime_manager.active_auctions[auction_id]
-
+def view_auction_report(context: CommandContext, auction_id: int):
+    try:
+        auction = runtime_manager.get_auction_by_id(auction_id)
+    except AuctionDoesNotExist as e:
+        raise CommandFailed(f"Could not view auction report: {e}")
     return {'auction': {'report': auction.auction_report}}
 
 
 @command("view_auction_history")
 @login_required
-def view_auction_history(user: RuntimeUser, auction_id: int):
-    auction = runtime_manager.active_auctions[auction_id]
-
+def view_auction_history(context: CommandContext, auction_id: int):
+    try:
+        auction = runtime_manager.get_auction_by_id(auction_id)
+    except AuctionDoesNotExist as e:
+        raise CommandFailed(f"Could not view auction history: {e}")
     return {'auction': {'report': auction.auction_history}}
 
 
@@ -189,54 +314,53 @@ def cleanup_pazar():
     logger.info("Terminated Pazar server", SERVER_PORT)
 
 
-def handle_commands(sock, client_address):
-    data_in = sock.recv(BUFFER_SIZE)
-    runtime_user = None
-
+def extract_request_data(request_obj):
     try:
-        while data_in:
-            request = data_in.decode()  # convert bytes to str
+        command_identifier = request_obj['command']
+        params = request_obj['params']
+    except KeyError as e:
+        raise InvalidCommand(f'Command has missing key: {e}')
+    return command_identifier, params
 
-            try:
-                request_obj = json.loads(request)
-                command_identifier = request_obj["command"]
-                params = request_obj["params"]
-            except Exception as e:
-                command_identifier = None
-                command_result = {
-                    'code': 3,
-                    'error': {'exception': e.__class__.__name__, 'message': str(e)},
-                }
 
-            if command_identifier == "login":
-                username = params.get("username")
-                password = params.get("password")
+def get_command_by_identifier(command_identifier):
+    try:
+        return COMMANDS[command_identifier]
+    except KeyError as e:
+        raise InvalidCommand(f'Command does not exist: {e}')
 
-                user = User.objects.get(username=username)  # TODO might not exist
 
-                if user.check_password(password):
-                    runtime_user = RuntimeUser.from_persistent_user(user)
-                    runtime_user.connect()
+def encode_response(response_dict):
+    response_str = json.dumps(response_dict, indent=4, sort_keys=True, cls=DjangoJSONEncoder)
+    return response_str.encode()  # convert str to bytes
 
-                command_result = {"code": 0, "result": {"id": runtime_user.id}}
-            elif command_identifier == "logout":
-                sock.close()
-                return
-            elif command_identifier:
-                try:
-                    command_handler = COMMANDS[command_identifier]
-                    command_result = command_handler(runtime_user, **params)
-                except Exception as e:
-                    command_result = {
-                        'code': 2,
-                        'error': {'exception': e.__class__.__name__, 'message': str(e)},
-                    }
 
-            response_str = json.dumps(
-                command_result, indent=4, sort_keys=True, cls=DjangoJSONEncoder
-            )
-            response = response_str.encode()
+def handle_commands(sock, client_address):
+    context = CommandContext()
+
+    while data_in := sock.recv(BUFFER_SIZE):
+        request = data_in.decode()  # convert bytes to str
+
+        try:
+            request_obj = json.loads(request)
+            command_identifier, params = extract_request_data(request_obj)
+            command_handler = get_command_by_identifier(command_identifier)
+            command_result = command_handler(context, **params)
+        except (JSONDecodeError, InvalidCommand) as e:
+            command_result = {
+                'code': CommandCode.FATAL,
+                'error': {'exception': e.__class__.__name__, 'message': str(e)},
+            }
+        except Exception as e:
+            logger.error(f'Unexpected exception: {e}')
+            command_result = {
+                'code': CommandCode.FATAL,
+                'error': {'exception': e.__class__.__name__, 'message': str(e)},
+            }
+            response = encode_response(command_result)
             sock.send(response)
-            data_in = sock.recv(BUFFER_SIZE)
-    finally:
-        sock.close()
+            sock.close()
+            return
+
+        response = encode_response(command_result)
+        sock.send(response)
