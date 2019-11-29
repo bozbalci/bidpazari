@@ -19,8 +19,8 @@ Activate the virtualenv, and install the dependencies (requires Poetry):
 
 Build the frontend, run the Pazar server and start the Django server:
 
-    (bidpazari) $ npm install && npm run build
-    (bidpazari) $ ./manage.py startpazar & ./manage.py runserver
+    (bidpazari) $ yarn install && yarn run build-dev
+    (bidpazari) $ ./manage.py startpazar --web & ./manage.py runserver
 
 
 ## Testing
