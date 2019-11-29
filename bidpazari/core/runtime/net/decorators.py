@@ -15,11 +15,20 @@ class command:
         def wrapper(*args, **kwargs):
             try:
                 result_dict = func(*args, **kwargs)
-                return {"code": CommandCode.OK, "result": {**result_dict}}
+                return {
+                    "event": self.name,
+                    "code": CommandCode.OK,
+                    "result": {**result_dict},
+                }
             except CommandFailed as e:
-                return {"code": CommandCode.ERROR, "error": {"message": str(e)}}
+                return {
+                    "event": self.name,
+                    "code": CommandCode.ERROR,
+                    "error": {"message": str(e)},
+                }
             except Exception as e:
                 return {
+                    "event": self.name,
                     "code": CommandCode.FATAL,
                     "error": {"exception": e.__class__.__name__, "message": str(e)},
                 }
