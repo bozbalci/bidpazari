@@ -88,4 +88,4 @@ node_modules/
 
 ### Webpack ###
 webpack-stats.json
-static/bundles/
+static/build/

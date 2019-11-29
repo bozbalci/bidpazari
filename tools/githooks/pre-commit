@@ -44,5 +44,5 @@ wrap_linter isort -c "${python_files[@]}"
 echo "Linting Python with black..."
 wrap_linter black --check "${python_files[@]}"
 
-# echo "Linting JavaScript with Prettier..."
-# wrap_linter prettier --check "${javascript_files[@]}"
+echo "Linting JavaScript with Prettier..."
+wrap_linter prettier --check "${javascript_files[@]}"
