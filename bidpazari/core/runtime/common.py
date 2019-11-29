@@ -1,4 +1,5 @@
 from bidpazari.core.models import UserHasItem
+from bidpazari.core.runtime.exceptions import AuctionDoesNotExist
 
 
 class RuntimeManager:
@@ -6,6 +7,12 @@ class RuntimeManager:
         self.active_auctions = {}
         self.item_watchers = []
         self.online_users = set()
+
+    def get_auction_by_id(self, id_: int):
+        try:
+            return self.active_auctions[id_]
+        except KeyError as e:
+            raise AuctionDoesNotExist(f'Auction with ID {e} does not exist.')
 
     def create_auction(self, uhi: UserHasItem, bidding_strategy_identifier: str, **kwargs):
         from bidpazari.core.runtime.auction import Auction
