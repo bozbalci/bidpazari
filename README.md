@@ -39,14 +39,28 @@ namely
 
 The format of these outputs are pretty self-explanatory.
 
-Happy hacking!
 
 ## TODO
 
-- [ ] Update TODOs
-- [ ] Create a `sell(...)` method that wraps transaction creation
+### Bugs
+
 - [ ] Fix thread blocking issue in decrement strategy
 - [ ] Fix price decrementing having an extra call upon stopping
-- [x] Fix the unit tests
+
+### Code quality
+
+- [ ] Create a `sell(...)` method that wraps transaction creation
+
+### Continuous integration and testing
+
+- [ ] Add JavaScript linting to CI
+- [ ] Add JavaScript tests
+
+### Nice-to-have
+
+- [ ] Add more verbose output to TCP and WS servers
+
+
+Happy hacking!
 
 -Fatih, Berk
