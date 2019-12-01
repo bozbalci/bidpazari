@@ -5,15 +5,22 @@ CENG445 Term Project, developed by @akca and @bozbalci.
 ## Installation
 
 Bidpazari relies on Django in order to persist its models. In
-order to run the tests, you need to first install Python 3.6 or
+order to run the tests, you need to first install Python 3.8 or
 greater, and then create a virtualenv.
 
     $ python -mvenv ~/.virtualenvs/bidpazari
 
-Activate the virtualenv, and install the requirements:
+Activate the virtualenv, and install the dependencies (requires Poetry):
 
     $ source ~/.virtualenvs/bidpazari/bin/activate
-    (bidpazari) $ pip install -r requirements.txt
+    (bidpazari) $ poetry install
+
+## Building
+
+Build the frontend, run the Pazar server and start the Django server:
+
+    (bidpazari) $ yarn install && yarn run build-dev
+    (bidpazari) $ ./manage.py startpazar --web & ./manage.py runserver
 
 
 ## Testing
@@ -32,13 +39,28 @@ namely
 
 The format of these outputs are pretty self-explanatory.
 
-Happy hacking!
 
 ## TODO
 
-- [ ] Create a `sell(...)` method that wraps transaction creation
+### Bugs
+
 - [ ] Fix thread blocking issue in decrement strategy
 - [ ] Fix price decrementing having an extra call upon stopping
-- [x] Fix the unit tests
+
+### Code quality
+
+- [ ] Create a `sell(...)` method that wraps transaction creation
+
+### Continuous integration and testing
+
+- [ ] Add JavaScript linting to CI
+- [ ] Add JavaScript tests
+
+### Nice-to-have
+
+- [ ] Add more verbose output to TCP and WS servers
+
+
+Happy hacking!
 
 -Fatih, Berk

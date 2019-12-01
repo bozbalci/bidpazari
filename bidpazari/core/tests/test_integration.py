@@ -41,9 +41,12 @@ class UserTestCase(TestCase):
         # Test password change flows
         with self.assertRaises(InvalidPassword):
             user.change_password(
-                new_password="you got hacked kiddo", old_password="psych! you actually didn't :)",
+                new_password="you got hacked kiddo",
+                old_password="psych! you actually didn't :)",
             )
-        newly_generated_password = user.change_password(new_password=None, old_password=None)
+        newly_generated_password = user.change_password(
+            new_password=None, old_password=None
+        )
         self.assertEqual(len(newly_generated_password), 16)
         user.change_password(
             new_password="*********************", old_password=newly_generated_password
@@ -58,11 +61,17 @@ class UserTestCase(TestCase):
         items = [pencil, notepad, coffee_mug, towel, watch]
 
         for item in items:
-            UserHasItem.objects.create(user=user.persistent_user, item=item, is_sold=False)
+            UserHasItem.objects.create(
+                user=user.persistent_user, item=item, is_sold=False
+            )
 
-        self.assertSetEqual(user.list_items(), {pencil, notepad, coffee_mug, towel, watch})
+        self.assertSetEqual(
+            user.list_items(), {pencil, notepad, coffee_mug, towel, watch}
+        )
         self.assertSetEqual(user.list_items(on_sale=True), {towel, watch})
-        self.assertSetEqual(user.list_items(on_sale=False), {pencil, notepad, coffee_mug})
+        self.assertSetEqual(
+            user.list_items(on_sale=False), {pencil, notepad, coffee_mug}
+        )
         self.assertSetEqual(user.list_items(item_type="Kitchen"), {coffee_mug, towel})
         self.assertSetEqual(user.list_items(item_type="Kitchen", on_sale=True), {towel})
 
@@ -168,7 +177,9 @@ class BiddingTestCase(TestCase):
         scarf = Item.objects.create(
             title="Scarf", description="A really cool scarf", item_type="Clothing"
         )
-        jimmy_has_scarf = UserHasItem.objects.create(item=scarf, user=jimmy.persistent_user)
+        jimmy_has_scarf = UserHasItem.objects.create(
+            item=scarf, user=jimmy.persistent_user
+        )
 
         auction = runtime_manager.create_auction(
             uhi=jimmy_has_scarf,
@@ -242,7 +253,9 @@ class BiddingTestCase(TestCase):
         scarf = Item.objects.create(
             title="Scarf", description="A really cool scarf", item_type="Clothing"
         )
-        jimmy_has_scarf = UserHasItem.objects.create(item=scarf, user=jimmy.persistent_user)
+        jimmy_has_scarf = UserHasItem.objects.create(
+            item=scarf, user=jimmy.persistent_user
+        )
 
         auction = runtime_manager.create_auction(
             uhi=jimmy_has_scarf,
@@ -341,7 +354,9 @@ class BiddingTestCase(TestCase):
         scarf = Item.objects.create(
             title="Scarf", description="A really cool scarf", item_type="Clothing"
         )
-        jimmy_has_scarf = UserHasItem.objects.create(item=scarf, user=jimmy.persistent_user)
+        jimmy_has_scarf = UserHasItem.objects.create(
+            item=scarf, user=jimmy.persistent_user
+        )
 
         auction = runtime_manager.create_auction(
             uhi=jimmy_has_scarf,
@@ -357,7 +372,9 @@ class BiddingTestCase(TestCase):
 
         self.assertEqual(auction.bidding_strategy.get_current_price(), Decimal(150.00))
         with self.assertRaises(InsufficientBalanceError):
-            auction.bid(john)  # no amount means that user is bidding to the current price
+            auction.bid(
+                john
+            )  # no amount means that user is bidding to the current price
         sleep(250 / 1000)
         self.assertEqual(auction.bidding_strategy.get_current_price(), Decimal(125.00))
         sleep(250 / 1000)
@@ -424,7 +441,9 @@ class BiddingTestCase(TestCase):
         scarf = Item.objects.create(
             title="Scarf", description="A really cool scarf", item_type="Clothing"
         )
-        jimmy_has_scarf = UserHasItem.objects.create(item=scarf, user=jimmy.persistent_user)
+        jimmy_has_scarf = UserHasItem.objects.create(
+            item=scarf, user=jimmy.persistent_user
+        )
 
         auction = runtime_manager.create_auction(
             uhi=jimmy_has_scarf,
@@ -499,7 +518,9 @@ class BiddingTestCase(TestCase):
         scarf = Item.objects.create(
             title="Scarf", description="A really cool scarf", item_type="Clothing"
         )
-        jimmy_has_scarf = UserHasItem.objects.create(item=scarf, user=jimmy.persistent_user)
+        jimmy_has_scarf = UserHasItem.objects.create(
+            item=scarf, user=jimmy.persistent_user
+        )
 
         auction = runtime_manager.create_auction(
             uhi=jimmy_has_scarf,
@@ -578,7 +599,9 @@ class BiddingTestCase(TestCase):
         scarf = Item.objects.create(
             title="Scarf", description="A really cool scarf", item_type="Clothing"
         )
-        jimmy_has_scarf = UserHasItem.objects.create(item=scarf, user=jimmy.persistent_user)
+        jimmy_has_scarf = UserHasItem.objects.create(
+            item=scarf, user=jimmy.persistent_user
+        )
 
         auction = runtime_manager.create_auction(
             uhi=jimmy_has_scarf,

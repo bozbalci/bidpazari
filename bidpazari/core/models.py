@@ -64,7 +64,8 @@ class User(TimeStampedModel, AbstractUser):
             self.set_password(new_password)
             self.save()
             self.email_user(
-                subject="Your password was changed", message="Your password was changed.",
+                subject="Your password was changed",
+                message="Your password was changed.",
             )
             return new_password
         else:
@@ -102,7 +103,9 @@ class User(TimeStampedModel, AbstractUser):
 
         :param amount: Amount in dollars, may be negative.
         """
-        Transaction.objects.create(amount=amount, source=None, destination=self, item=None)
+        Transaction.objects.create(
+            amount=amount, source=None, destination=self, item=None
+        )
 
     @property
     def transaction_history(self):
@@ -145,7 +148,11 @@ class Item(TimeStampedModel):
 class Transaction(TimeStampedModel):
     amount = models.DecimalField(max_digits=7, decimal_places=2, blank=False)
     source = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="outgoing_transactions", blank=True, null=True,
+        User,
+        on_delete=models.CASCADE,
+        related_name="outgoing_transactions",
+        blank=True,
+        null=True,
     )
     destination = models.ForeignKey(
         User,
@@ -155,7 +162,11 @@ class Transaction(TimeStampedModel):
         null=True,
     )
     item = models.ForeignKey(
-        Item, on_delete=models.CASCADE, related_name="transactions", blank=True, null=True,
+        Item,
+        on_delete=models.CASCADE,
+        related_name="transactions",
+        blank=True,
+        null=True,
     )
 
     def __str__(self):

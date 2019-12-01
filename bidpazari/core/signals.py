@@ -5,7 +5,9 @@ from bidpazari.core.models import Transaction, User
 from bidpazari.core.runtime.common import runtime_manager
 
 
-@receiver(post_save, sender=Transaction, dispatch_uid="update_balances_of_runtime_users")
+@receiver(
+    post_save, sender=Transaction, dispatch_uid="update_balances_of_runtime_users"
+)
 def update_balances_of_runtime_users(sender, instance: Transaction, **kwargs):
     if not kwargs["created"]:
         return

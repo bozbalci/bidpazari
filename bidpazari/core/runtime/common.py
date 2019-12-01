@@ -14,7 +14,9 @@ class RuntimeManager:
         except KeyError as e:
             raise AuctionDoesNotExist(f'Auction with ID {e} does not exist.')
 
-    def create_auction(self, uhi: UserHasItem, bidding_strategy_identifier: str, **kwargs):
+    def create_auction(
+        self, uhi: UserHasItem, bidding_strategy_identifier: str, **kwargs
+    ):
         from bidpazari.core.runtime.auction import Auction
 
         auction = Auction(
