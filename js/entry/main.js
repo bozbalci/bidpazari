@@ -1,16 +1,13 @@
-import React from "react";
-import ReactDOM from "react-dom";
+import React from 'react';
 
-Array.from(document.querySelectorAll(".app")).forEach(appContainer => {
-  const appName = appContainer.dataset.app;
+Array.from(document.querySelectorAll('.app-loader')).forEach(appContainer => {
+  const appId = appContainer.dataset.appId,
+    appPropsString = appContainer.dataset.appProps,
+    appProps = appPropsString ? JSON.parse(appPropsString) : {};
 
-  console.log(`Loading app: ${appName}`);
+  // TODO Eliminate relative import here (..)
 
-  import(/* webpackChunkName: "[request]" */ `../${appName}/app`).then(
-    appModule => {
-      const AppComponent = appModule.default;
-      const appComponent = <AppComponent />;
-      ReactDOM.render(appComponent, appContainer);
-    }
-  );
+  import(/* webpackChunkName: "[request]" */ `../${appId}/app`).then(appModule => {
+    appModule.default(appContainer, appProps);
+  });
 });

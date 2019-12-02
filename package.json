@@ -35,6 +35,7 @@
     "mobx": "^5.15.0",
     "mobx-react": "^6.1.4",
     "prettier": "^1.19.1",
-    "webpack-cli": "^3.3.10"
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.9.0"
   }
 }
