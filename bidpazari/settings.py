@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third-party apps
     'webpack_loader',
+    'argonauts',
     # Bidpazari
     "bidpazari.core.apps.CoreConfig",
 ]

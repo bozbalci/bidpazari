@@ -1,0 +1,33 @@
+{% load render_bundle from webpack_loader %}
+
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="UTF-8">
+
+    <title>
+        {% block title %}
+            Bidpazari
+        {% endblock %}
+    </title>
+
+    {% block style %}
+        {% render_bundle 'main' 'css' %}
+    {% endblock %}
+
+    {% block extrastyle %}
+    {% endblock %}
+</head>
+<body>
+<div class="main-content">
+    {% block content %}
+        {{ content }}
+    {% endblock %}
+
+    {% block jsbody %}
+        {% render_bundle 'main-vendor' 'js' attrs='defer' %}
+        {% render_bundle 'main' 'js' attrs='defer' %}
+    {% endblock %}
+</div>
+</body>
+</html>

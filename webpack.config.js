@@ -5,11 +5,13 @@ var BundleTracker = require("webpack-bundle-tracker");
 module.exports = {
   context: __dirname,
 
-  entry: "./js/index",
+  entry: "entry/main",
 
   output: {
     path: path.resolve("./static/build/"),
-    filename: "[name]-[hash].js"
+    publicPath: "/static/build/",
+    filename: "[name]-[hash].js",
+    chunkFilename: "[name].[chunkhash].js"
   },
 
   plugins: [new BundleTracker({ filename: "./webpack-stats.json" })],
@@ -43,8 +45,22 @@ module.exports = {
     ]
   },
 
+  optimization: {
+    splitChunks: {
+      minSize: 100 * 1024,
+      cacheGroups: {
+        "main-vendor": {
+          chunks: chunk => chunk.name === "main",
+          minChunks: 1,
+          name: "main-vendor",
+          test: /[\\/]node_modules[\\/]/i
+        }
+      }
+    }
+  },
+
   resolve: {
-    modules: ["node_modules"],
+    modules: [path.resolve(__dirname, "./js"), "node_modules"],
     extensions: [".js", ".jsx"]
   }
 };
