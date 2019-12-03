@@ -5,16 +5,21 @@ var BundleTracker = require('webpack-bundle-tracker');
 module.exports = {
   context: __dirname,
 
-  entry: 'entry/main',
+  entry: ['entry/main'],
 
   output: {
     path: path.resolve('./static/build/'),
-    publicPath: '/static/build/',
+    // publicPath: '/static/build/',
+    publicPath: 'http://localhost:3000/static/build/',
     filename: '[name]-[hash].js',
     chunkFilename: '[name].[chunkhash].js',
   },
 
-  plugins: [new BundleTracker({filename: './webpack-stats.json'})],
+  plugins: [
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.NoEmitOnErrorsPlugin(),
+    new BundleTracker({filename: './webpack-stats.json'}),
+  ],
 
   module: {
     rules: [
@@ -65,4 +70,6 @@ module.exports = {
     modules: [path.resolve(__dirname, './js'), 'node_modules'],
     extensions: ['.js', '.jsx'],
   },
+
+  mode: 'development',
 };
