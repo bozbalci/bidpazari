@@ -1,14 +1,16 @@
-{% load render_bundle from webpack_loader %}
+{% extends "core/__base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Bidpazari WebSocket Client</title>
-</head>
-<body>
-<div id="root">
-    {% render_bundle 'main' %}
-</div>
-</body>
-</html>
+{% load argonauts %}
+
+{% block title %}
+    Bidpazari WebSocket Client
+{% endblock %}
+
+{% block content %}
+    <div
+        class="app-loader app-ws-client"
+        data-app-id="ws-client"
+        data-app-props="{{ props|json|force_escape }}"
+    >
+    </div>
+{% endblock %}

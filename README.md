@@ -22,7 +22,6 @@ Build the frontend, run the Pazar server and start the Django server:
     (bidpazari) $ yarn install && yarn run build-dev
     (bidpazari) $ ./manage.py startpazar --web & ./manage.py runserver
 
-
 ## Testing
 
 You can run the tests with
@@ -38,7 +37,6 @@ namely
 - auction histories
 
 The format of these outputs are pretty self-explanatory.
-
 
 ## TODO
 
@@ -59,7 +57,6 @@ The format of these outputs are pretty self-explanatory.
 ### Nice-to-have
 
 - [ ] Add more verbose output to TCP and WS servers
-
 
 Happy hacking!
 

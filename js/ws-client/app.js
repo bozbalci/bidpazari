@@ -1,10 +1,12 @@
-import React, { Fragment } from "react";
-import { observer } from "mobx-react";
+import React, {Fragment} from 'react';
+import {observer} from 'mobx-react';
 
-import WSClientStore from "./WSClientStore";
+import renderReact from '../utils/render-react';
+
+import WSClientStore from './WSClientStore';
 
 @observer
-export default class App extends React.Component {
+class WSClient extends React.Component {
   constructor(props) {
     super(props);
 
@@ -29,7 +31,7 @@ export default class App extends React.Component {
           <Fragment key={index}>
             <pre
               style={{
-                color: item.color
+                color: item.color,
               }}
             >
               {item.data}
@@ -40,4 +42,8 @@ export default class App extends React.Component {
       </>
     );
   }
+}
+
+export default function bootstrap(container, props) {
+  renderReact(container, '.app-ws-client', WSClient, props);
 }
