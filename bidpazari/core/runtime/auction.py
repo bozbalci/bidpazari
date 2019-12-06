@@ -102,7 +102,7 @@ class Auction:
         )
 
     def bid(self, user: "RuntimeUser", amount=None):
-        if not self.status:
+        if self.status != AuctionStatus.OPEN:
             raise BiddingNotAllowed(BiddingErrorReason.AuctionClosed)
 
         if user.id == self.owner.id:

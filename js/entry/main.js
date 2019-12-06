@@ -1,5 +1,7 @@
 import React from 'react';
 
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 Array.from(document.querySelectorAll('.app-loader')).forEach(appContainer => {
   const appId = appContainer.dataset.appId,
     appPropsString = appContainer.dataset.appProps,

@@ -3,6 +3,9 @@ import autobind from 'autobind-decorator';
 
 export default class WSClientStore {
   @observable connected = false;
+  @observable loggedIn = false;
+
+  @observable commandResults = [];
   @observable feed = [];
 
   constructor() {
@@ -39,6 +42,18 @@ export default class WSClientStore {
     const formattedData = event.data;
     const data = JSON.parse(formattedData);
 
+    switch (data.event) {
+      case 'login':
+        this.onLogin(data);
+        break;
+      case 'logout':
+        this.onLogout(data);
+        break;
+      case 'notification':
+        this.onNotification(formattedData, data);
+        return;
+    }
+
     let color;
     switch (data.code) {
       case 0:
@@ -56,7 +71,7 @@ export default class WSClientStore {
     }
 
     runInAction(() => {
-      this.feed.push({
+      this.commandResults.unshift({
         data: formattedData,
         color,
       });
@@ -169,7 +184,35 @@ export default class WSClientStore {
   }
 
   @action
+  clearCommandResults() {
+    this.commandResults = [];
+  }
+
+  @action
   clearFeed() {
     this.feed = [];
+  }
+
+  @action
+  onLogin(data) {
+    if (data.code === 0) {
+      // User is successfully logged in.
+      this.loggedIn = true;
+    }
+  }
+
+  @action
+  onLogout(data) {
+    if (data.code === 0) {
+      this.loggedIn = false;
+    }
+  }
+
+  @action
+  onNotification(formattedData, data) {
+    this.feed.unshift({
+      data: formattedData,
+      color: 'green',
+    });
   }
 }
