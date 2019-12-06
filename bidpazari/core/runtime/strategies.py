@@ -1,8 +1,7 @@
 from collections import defaultdict
 from decimal import Decimal
 from operator import itemgetter
-from threading import Thread
-from time import sleep
+from threading import Timer
 
 from bidpazari.core.exceptions import (
     BiddingErrorReason,
@@ -29,9 +28,6 @@ class BaseBiddingStrategy:
 
     def stop(self):
         self.auction.on_bidding_stopped()
-
-    def cleanup(self):
-        pass
 
     def bid(self, bidder, amount):
         self.auction.log_event(
@@ -120,36 +116,30 @@ class DecrementBiddingStrategy(BaseBiddingStrategy):
         self.minimum_price = minimum_price
         self.price_decrement_rate = price_decrement_rate
         self.tick_ms = tick_ms
-        self.decrementing_thread = Thread(target=self._decrement_price)
-        self.decrement_flag = False
+        self.tick_s = tick_ms / 1000
+        self.decrementing_thread = Timer(self.tick_s, self._decrement_price)
 
     def _decrement_price(self):
-        should_decrement = lambda: self.decrement_flag and (
+        from bidpazari.core.runtime.auction import AuctionStatus
+
+        should_decrement = (self.auction.status == AuctionStatus.OPEN) and (
             self.current_price > self.minimum_price
         )
-        tick_s = self.tick_ms / 1000
 
-        while should_decrement():
-            sleep(tick_s)
+        if should_decrement:
             self.current_price = max(
                 self.current_price - self.price_decrement_rate, self.minimum_price
             )
             self.auction.on_bidding_updated(
                 event_type="price_decremented", new_price=self.current_price
             )
-        # TODO fix stopping automatically behavior here
+            self.decrementing_thread = Timer(self.tick_s, self._decrement_price)
+            self.decrementing_thread.start()
+        else:
+            self.stop()
 
     def start(self):
-        self.decrement_flag = True
         self.decrementing_thread.start()
-
-    def stop(self):
-        self.decrement_flag = False
-        self.decrementing_thread.join()
-        super().stop()
-
-    def cleanup(self):
-        pass
 
     def bid(self, bidder, amount=None):
         self.reserve_for_bid(bidder, self.get_current_price())

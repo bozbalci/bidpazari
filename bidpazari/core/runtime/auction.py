@@ -9,9 +9,15 @@ from bidpazari.core.exceptions import (
     InsufficientBalanceError,
 )
 from bidpazari.core.models import Transaction, UserHasItem
-from bidpazari.core.runtime.common import runtime_manager
+from bidpazari.core.runtime.exceptions import InvalidAuctionStatus
 from bidpazari.core.runtime.strategies import BiddingStrategyFactory
 from bidpazari.core.runtime.watchers import AuctionWatcher
+
+
+class AuctionStatus:
+    INITIAL = 'INITIAL'
+    OPEN = 'OPEN'
+    CLOSED = 'CLOSED'
 
 
 class Auction:
@@ -22,7 +28,7 @@ class Auction:
             bidding_strategy_identifier, **kwargs
         )
         self.bidding_strategy.auction = self
-        self.is_open = False
+        self.status = AuctionStatus.INITIAL
         self.auction_watchers = []
         self.activity_log = []
         self.log_event("Auction created")
@@ -40,7 +46,12 @@ class Auction:
         return self.uhi.item
 
     def start(self):
-        self.is_open = True
+        if self.status != AuctionStatus.INITIAL:
+            raise InvalidAuctionStatus(
+                "You can perform this action only on auctions which have not yet been started."
+            )
+
+        self.status = AuctionStatus.OPEN
         self.bidding_strategy.start()
         self.on_bidding_updated(event_type="auction_started")
         self.log_event("Auction started")
@@ -56,9 +67,11 @@ class Auction:
         self.notify_users(*args, **kwargs)
 
     def on_bidding_stopped(self):
-        self.bidding_strategy.cleanup()
+        if self.status == AuctionStatus.CLOSED:
+            raise InvalidAuctionStatus('Auction has already been stopped.')
+
         self.on_bidding_updated(event_type="auction_stopped")
-        self.is_open = False
+        self.status = AuctionStatus.CLOSED
         self.log_event("Auction stopped")
 
         winner, amount = self.bidding_strategy.get_current_winner_and_amount()
@@ -82,10 +95,9 @@ class Auction:
             self.log_event("Auction reached minimum price with no bidders.")
 
         self.log_event("Removing auction from active auctions...")
-        del runtime_manager.active_auctions[self.id]  # Unregister from runtime
 
     def bid(self, user: "RuntimeUser", amount=None):
-        if not self.is_open:
+        if not self.status:
             raise BiddingNotAllowed(BiddingErrorReason.AuctionClosed)
 
         if user.id == self.owner.id:
@@ -137,7 +149,7 @@ Bidding Details
 
         return {
             'id': self.id,
-            'status': 'Open' if self.is_open else 'Closed',
+            'status': self.status,
             'bidding_strategy': bidding_strategy_name,
             'item': self.item.title,
             'description': self.item.description,

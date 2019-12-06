@@ -4,13 +4,13 @@ from bidpazari.core.runtime.exceptions import AuctionDoesNotExist
 
 class RuntimeManager:
     def __init__(self):
-        self.active_auctions = {}
+        self.auctions = {}
         self.item_watchers = []
         self.online_users = set()
 
     def get_auction_by_id(self, id_: int):
         try:
-            return self.active_auctions[id_]
+            return self.auctions[id_]
         except KeyError as e:
             raise AuctionDoesNotExist(f'Auction with ID {e} does not exist.')
 
@@ -19,10 +19,12 @@ class RuntimeManager:
     ):
         from bidpazari.core.runtime.auction import Auction
 
+        # TODO if item is already being auctioned, raise an exception here
+
         auction = Auction(
             uhi=uhi, bidding_strategy_identifier=bidding_strategy_identifier, **kwargs
         )
-        self.active_auctions[uhi.id] = auction
+        self.auctions[uhi.id] = auction
         self.notify_users_of_new_auction(auction)
         return auction
 

@@ -8,7 +8,10 @@ from bidpazari.core.exceptions import (
 )
 from bidpazari.core.models import User
 from bidpazari.core.runtime.common import runtime_manager
-from bidpazari.core.runtime.exceptions import AuctionDoesNotExist
+from bidpazari.core.runtime.exceptions import (
+    AuctionDoesNotExist,
+    InvalidAuctionStatus,
+)
 from bidpazari.core.runtime.net.decorators import command, login_required
 from bidpazari.core.runtime.net.exceptions import CommandFailed, InvalidCommand
 from bidpazari.core.runtime.user import RuntimeUser
@@ -182,7 +185,7 @@ def create_auction(
         bidding_strategy_identifier=bidding_strategy_identifier,
         **kwargs,
     )
-    auction = runtime_manager.active_auctions[auction_id]
+    auction = runtime_manager.get_auction_by_id(auction_id)
     return {'auction': {**auction.to_json()}}
 
 
@@ -190,10 +193,17 @@ def create_auction(
 @login_required
 def start_auction(context: CommandContext, auction_id: int):
     user = context.runtime_user
-    auction = runtime_manager.active_auctions[auction_id]
+
+    try:
+        auction = runtime_manager.get_auction_by_id(auction_id)
+    except AuctionDoesNotExist as e:
+        raise CommandFailed(f"Could not start auction: {e}")
 
     if user.id == auction.owner.id:
-        auction.start()
+        try:
+            auction.start()
+        except InvalidAuctionStatus as e:
+            raise CommandFailed(f"Could not start auction: {e}")
     else:
         raise CommandFailed(
             "You must be the owner of the auction to perform this action."
