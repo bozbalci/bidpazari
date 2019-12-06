@@ -1,3 +1,5 @@
+import asyncio
+import time
 from decimal import Decimal
 from typing import Optional, Union
 
@@ -37,7 +39,7 @@ class CommandContext:
 
 
 @command("create_user")
-def create_user(
+async def create_user(
     context: CommandContext,
     username: str,
     password: str,
@@ -61,7 +63,7 @@ def create_user(
 
 
 @command("login")
-def login(context: CommandContext, username: str, password: str):
+async def login(context: CommandContext, username: str, password: str):
     if context.runtime_user:
         raise CommandFailed("You are already logged in!")
 
@@ -82,7 +84,9 @@ def login(context: CommandContext, username: str, password: str):
 
 @command("change_password")
 @login_required
-def change_password(context: CommandContext, new_password: str, old_password: str):
+async def change_password(
+    context: CommandContext, new_password: str, old_password: str
+):
     """
     Used for changing the password of an already logged in user. If the password is forgotten,
     use the "reset_password" command.
@@ -101,7 +105,7 @@ def change_password(context: CommandContext, new_password: str, old_password: st
 
 
 @command("reset_password")
-def reset_password(context: CommandContext, email: str):
+async def reset_password(context: CommandContext, email: str):
     try:
         user = User.objects.get(email=email)
         user.change_password(new_password=None, old_password=None)
@@ -113,7 +117,7 @@ def reset_password(context: CommandContext, email: str):
 
 @command("verify")
 @login_required
-def verify(context: CommandContext, verification_number):
+async def verify(context: CommandContext, verification_number):
     user = context.runtime_user
 
     try:
@@ -126,7 +130,7 @@ def verify(context: CommandContext, verification_number):
 
 @command("logout")
 @login_required
-def logout(context: CommandContext):
+async def logout(context: CommandContext):
     user = context.runtime_user
     user.disconnect()
     context.runtime_user = None
@@ -135,7 +139,7 @@ def logout(context: CommandContext):
 
 @command("add_balance")
 @login_required
-def add_balance(context: CommandContext, amount: Union[Decimal, float]):
+async def add_balance(context: CommandContext, amount: Union[Decimal, float]):
     user = context.runtime_user
     amount = Decimal(amount)
     user.add_balance_transaction(amount)
@@ -144,7 +148,7 @@ def add_balance(context: CommandContext, amount: Union[Decimal, float]):
 
 @command("list_items")
 @login_required
-def list_items(
+async def list_items(
     context: CommandContext, item_type: Optional[str], on_sale: Optional[bool]
 ):
     user = context.runtime_user
@@ -163,14 +167,14 @@ def list_items(
 
 @command("view_transaction_history")
 @login_required
-def view_transaction_history(context: CommandContext):
+async def view_transaction_history(context: CommandContext):
     user = context.runtime_user
     return {"history": user.transaction_history}
 
 
 @command("create_auction")
 @login_required
-def create_auction(
+async def create_auction(
     context: CommandContext, item_id: int, bidding_strategy_identifier: str, **kwargs
 ):
     user = context.runtime_user
@@ -191,7 +195,7 @@ def create_auction(
 
 @command("start_auction")
 @login_required
-def start_auction(context: CommandContext, auction_id: int):
+async def start_auction(context: CommandContext, auction_id: int):
     user = context.runtime_user
 
     try:
@@ -213,7 +217,7 @@ def start_auction(context: CommandContext, auction_id: int):
 
 @command("bid")
 @login_required
-def bid(context: CommandContext, auction_id: int, amount: float):
+async def bid(context: CommandContext, auction_id: int, amount: float):
     user = context.runtime_user
     amount = Decimal(amount)
 
@@ -229,7 +233,7 @@ def bid(context: CommandContext, auction_id: int, amount: float):
 
 @command("sell")
 @login_required
-def sell(context: CommandContext, auction_id: int):
+async def sell(context: CommandContext, auction_id: int):
     user = context.runtime_user
 
     try:
@@ -247,7 +251,7 @@ def sell(context: CommandContext, auction_id: int):
 
 @command("view_auction_report")
 @login_required
-def view_auction_report(context: CommandContext, auction_id: int):
+async def view_auction_report(context: CommandContext, auction_id: int):
     try:
         auction = runtime_manager.get_auction_by_id(auction_id)
     except AuctionDoesNotExist as e:
@@ -257,7 +261,7 @@ def view_auction_report(context: CommandContext, auction_id: int):
 
 @command("view_auction_history")
 @login_required
-def view_auction_history(context: CommandContext, auction_id: int):
+async def view_auction_history(context: CommandContext, auction_id: int):
     try:
         auction = runtime_manager.get_auction_by_id(auction_id)
     except AuctionDoesNotExist as e:

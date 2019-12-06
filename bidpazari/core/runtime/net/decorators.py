@@ -12,9 +12,9 @@ class command:
         from bidpazari.core.runtime.net.protocol import COMMANDS
 
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        async def wrapper(*args, **kwargs):
             try:
-                result_dict = func(*args, **kwargs)
+                result_dict = await func(*args, **kwargs)
                 return {
                     "event": self.name,
                     "code": CommandCode.OK,
@@ -40,11 +40,11 @@ class command:
 
 def login_required(func):
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    async def wrapper(*args, **kwargs):
         context, *_ = args
 
         if not context.runtime_user:
             raise CommandFailed("You must log in to perform this action.")
-        return func(*args, **kwargs)
+        return await func(*args, **kwargs)
 
     return wrapper
