@@ -30,8 +30,7 @@ class RuntimeManager:
 
     def notify_users_of_new_auction(self, auction):
         for item_watcher in self.item_watchers:
-            # TODO pass auction.uhi here
-            item_watcher.notify(auction.item, auction.initial_price)
+            item_watcher.notify(auction)
 
     def register_item_watcher(self, item_watcher):
         self.item_watchers.append(item_watcher)

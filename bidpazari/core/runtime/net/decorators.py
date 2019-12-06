@@ -1,4 +1,9 @@
+import asyncio
+import json
+import threading
 from functools import wraps
+
+from django.core.serializers.json import DjangoJSONEncoder
 
 from bidpazari.core.runtime.net.constants import CommandCode
 from bidpazari.core.runtime.net.exceptions import CommandFailed
@@ -35,6 +40,37 @@ class command:
 
         # Register command to COMMANDS
         COMMANDS[self.name] = wrapper
+        return wrapper
+
+
+class push_notification:
+    def __init__(self, websocket):
+        self.websocket = websocket
+
+    def __call__(self, func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            def push():
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                asyncio.get_event_loop().run_until_complete(
+                    self.websocket.send(
+                        json.dumps(
+                            {
+                                'event': 'notification',
+                                'code': CommandCode.OK,
+                                'result': func(*args, **kwargs),
+                            },
+                            cls=DjangoJSONEncoder,
+                            indent=4,
+                            sort_keys=True,
+                        )
+                    )
+                )
+
+            thread = threading.Thread(target=push)
+            thread.start()
+
         return wrapper
 
 

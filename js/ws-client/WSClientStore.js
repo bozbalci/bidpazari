@@ -113,6 +113,12 @@ export default class WSClientStore {
     this._sendCommand('list_items', {});
   }
 
+  watchItems(item_type) {
+    this._sendCommand('watch_items', {
+      item_type,
+    });
+  }
+
   viewTransactionHistory() {
     this._sendCommand('view_transaction_history', {});
   }
@@ -140,6 +146,12 @@ export default class WSClientStore {
 
   sell(auction_id) {
     this._sendCommand('sell', {
+      auction_id,
+    });
+  }
+
+  watchAuction(auction_id) {
+    this._sendCommand('watch_auction', {
       auction_id,
     });
   }

@@ -1,6 +1,3 @@
-from bidpazari.core.models import Item
-
-
 class Watcher:
     pass
 
@@ -10,9 +7,11 @@ class ItemWatcher(Watcher):
         self.callback_method = callback_method
         self.item_type = item_type
 
-    def notify(self, item: Item, initial_price):
+    def notify(self, auction):
+        item = auction.item
+
         if not self.item_type or self.item_type == item.item_type:
-            self.callback_method(item, initial_price)
+            self.callback_method(auction)
 
 
 class AuctionWatcher(Watcher):

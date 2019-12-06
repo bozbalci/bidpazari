@@ -53,7 +53,10 @@ class Auction:
 
         self.status = AuctionStatus.OPEN
         self.bidding_strategy.start()
-        self.on_bidding_updated(event_type="auction_started")
+        self.on_bidding_updated(
+            type="auction_started",
+            data={'current_price': self.bidding_strategy.get_current_price()},
+        )
         self.log_event("Auction started")
 
     def stop(self):
@@ -70,7 +73,6 @@ class Auction:
         if self.status == AuctionStatus.CLOSED:
             raise InvalidAuctionStatus('Auction has already been stopped.')
 
-        self.on_bidding_updated(event_type="auction_stopped")
         self.status = AuctionStatus.CLOSED
         self.log_event("Auction stopped")
 
@@ -94,7 +96,10 @@ class Auction:
         else:
             self.log_event("Auction reached minimum price with no bidders.")
 
-        self.log_event("Removing auction from active auctions...")
+        self.on_bidding_updated(
+            type="auction_stopped",
+            data={'winner_id': winner and winner.id, 'amount': amount},
+        )
 
     def bid(self, user: "RuntimeUser", amount=None):
         if not self.status:

@@ -1,4 +1,5 @@
 import asyncio
+import json
 import time
 from decimal import Decimal
 from typing import Optional, Union
@@ -8,13 +9,18 @@ from bidpazari.core.exceptions import (
     InvalidPassword,
     UserVerificationError,
 )
-from bidpazari.core.models import User
+from bidpazari.core.models import Item, User
+from bidpazari.core.runtime.auction import Auction
 from bidpazari.core.runtime.common import runtime_manager
 from bidpazari.core.runtime.exceptions import (
     AuctionDoesNotExist,
     InvalidAuctionStatus,
 )
-from bidpazari.core.runtime.net.decorators import command, login_required
+from bidpazari.core.runtime.net.decorators import (
+    command,
+    login_required,
+    push_notification,
+)
 from bidpazari.core.runtime.net.exceptions import CommandFailed, InvalidCommand
 from bidpazari.core.runtime.user import RuntimeUser
 
@@ -34,7 +40,8 @@ class CommandContext:
     of every command function.
     """
 
-    def __init__(self, runtime_user: RuntimeUser = None):
+    def __init__(self, websocket=None, runtime_user: RuntimeUser = None):
+        self.websocket = websocket
         self.runtime_user = runtime_user
 
 
@@ -165,6 +172,20 @@ async def list_items(
     }
 
 
+@command("watch_items")
+@login_required
+async def watch_items(context: CommandContext, item_type: str = None):
+    @push_notification(context.websocket)
+    def notify(auction: Auction):
+        return {
+            'auction': {**auction.to_json()},
+        }
+
+    context.runtime_user.register_item_watcher(notify, item_type=item_type)
+
+    return {}
+
+
 @command("view_transaction_history")
 @login_required
 async def view_transaction_history(context: CommandContext):
@@ -247,6 +268,22 @@ async def sell(context: CommandContext, auction_id: int):
     except AuctionDoesNotExist as e:
         raise CommandFailed(f"Could not end auction: {e}")
     return {'auction': {**auction.to_json()}}
+
+
+@command("watch_auction")
+@login_required
+async def watch_auction(context: CommandContext, auction_id: int):
+    try:
+        auction = runtime_manager.get_auction_by_id(auction_id)
+    except AuctionDoesNotExist as e:
+        raise CommandFailed(f"Could not view auction report: {e}")
+
+    @push_notification(context.websocket)
+    def notify(**kwargs):
+        return {'type': kwargs.get('type'), 'data': kwargs.get('data')}
+
+    auction.register_user_to_updates(notify)
+    return {}
 
 
 @command("view_auction_report")

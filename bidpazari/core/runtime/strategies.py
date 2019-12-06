@@ -33,7 +33,9 @@ class BaseBiddingStrategy:
         self.auction.log_event(
             f"{bidder.persistent_user.get_full_name()} made a bid: {amount}"
         )
-        self.auction.on_bidding_updated(event_type="bid_received")
+        self.auction.on_bidding_updated(
+            type="bid_received", data={'bidder_id': bidder.id, 'amount': amount}
+        )
         self.bidders.add(bidder)
         self.bidding_history.append((bidder, amount))
 
@@ -131,7 +133,8 @@ class DecrementBiddingStrategy(BaseBiddingStrategy):
                 self.current_price - self.price_decrement_rate, self.minimum_price
             )
             self.auction.on_bidding_updated(
-                event_type="price_decremented", new_price=self.current_price
+                type="price_decremented",
+                data={'current_price': self.get_current_price()},
             )
             self.decrementing_thread = Timer(self.tick_s, self._decrement_price)
             self.decrementing_thread.start()

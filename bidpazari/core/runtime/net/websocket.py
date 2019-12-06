@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import traceback
 from json import JSONDecodeError
 
 import websockets
@@ -30,7 +31,7 @@ def encode_response_ws(response_dict):
 
 
 async def handle_commands_ws(websocket, path):
-    context = CommandContext()
+    context = CommandContext(websocket=websocket)
     command_result = {}
 
     while request := await websocket.recv():
@@ -50,6 +51,7 @@ async def handle_commands_ws(websocket, path):
                 'code': CommandCode.FATAL,
                 'error': {'exception': e.__class__.__name__, 'message': str(e)},
             }
+            traceback.print_tb(e.__traceback__)
         finally:
             response = encode_response_ws(command_result)
             await websocket.send(response)
