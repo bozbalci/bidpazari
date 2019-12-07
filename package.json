@@ -36,6 +36,8 @@
     "@babel/preset-react": "^7.7.4",
     "autobind-decorator": "^2.4.0",
     "css-loader": "^3.2.1",
+    "less": "^3.10.3",
+    "less-loader": "^5.0.0",
     "mobx": "^5.15.0",
     "mobx-react": "^6.1.4",
     "prettier": "^1.19.1",

@@ -276,7 +276,7 @@ async def watch_auction(context: CommandContext, auction_id: int):
     try:
         auction = runtime_manager.get_auction_by_id(auction_id)
     except AuctionDoesNotExist as e:
-        raise CommandFailed(f"Could not view auction report: {e}")
+        raise CommandFailed(f"Could not watch auction report: {e}")
 
     @push_notification(context.websocket)
     def notify(**kwargs):

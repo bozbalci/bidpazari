@@ -4,6 +4,7 @@ import threading
 from functools import wraps
 
 from django.core.serializers.json import DjangoJSONEncoder
+from django.utils import timezone
 
 from bidpazari.core.runtime.net.constants import CommandCode
 from bidpazari.core.runtime.net.exceptions import CommandFailed
@@ -22,18 +23,21 @@ class command:
                 result_dict = await func(*args, **kwargs)
                 return {
                     "event": self.name,
+                    "timestamp": timezone.now().isoformat(),
                     "code": CommandCode.OK,
                     "result": {**result_dict},
                 }
             except CommandFailed as e:
                 return {
                     "event": self.name,
+                    "timestamp": timezone.now().isoformat(),
                     "code": CommandCode.ERROR,
                     "error": {"message": str(e)},
                 }
             except Exception as e:
                 return {
                     "event": self.name,
+                    "timestamp": timezone.now().isoformat(),
                     "code": CommandCode.FATAL,
                     "error": {"exception": e.__class__.__name__, "message": str(e)},
                 }
@@ -58,6 +62,7 @@ class push_notification:
                         json.dumps(
                             {
                                 'event': 'notification',
+                                "timestamp": timezone.now().isoformat(),
                                 'code': CommandCode.OK,
                                 'result': func(*args, **kwargs),
                             },
