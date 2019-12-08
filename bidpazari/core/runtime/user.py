@@ -9,6 +9,7 @@ from bidpazari.core.exceptions import (
 )
 from bidpazari.core.models import User, UserHasItem
 from bidpazari.core.runtime.common import runtime_manager
+from bidpazari.core.runtime.exceptions import ItemAlreadyOnSale
 from bidpazari.core.runtime.watchers import ItemWatcher
 
 
@@ -86,8 +87,11 @@ class RuntimeUser:
 
     @persistent_user_proxy_method
     def create_auction(self, item_id: int, bidding_strategy_identifier: str, **kwargs):
-        # TODO add error checks
         uhi = UserHasItem.objects.get(user_id=self.id, item_id=item_id, is_sold=False)
+
+        if uhi.id in runtime_manager.auctions:
+            raise ItemAlreadyOnSale()
+
         runtime_manager.create_auction(
             uhi=uhi, bidding_strategy_identifier=bidding_strategy_identifier, **kwargs
         )
@@ -126,11 +130,9 @@ class RuntimeUser:
         self.reserved_balance = Decimal(0)
 
     def connect(self):
-        # TODO connect only once
         runtime_manager.online_users.add(self)
 
     def disconnect(self):
-        # TODO disallow if not connected
         runtime_manager.online_users.remove(self)
 
     def __hash__(self):
