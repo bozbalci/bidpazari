@@ -15,6 +15,28 @@ export default class WSClientStore {
   @observable commandResults = [];
   @observable feed = [];
 
+  help() {
+    const warningTitleCSS =
+      'color:red; font-size:36px; font-weight: bold; -webkit-text-stroke: 1px black;';
+    const warningDescCSS = 'font-size: 14px;';
+
+    console.log('%cBidpazari WebSocket Client', warningTitleCSS);
+    console.log(
+      `%cUse wsClient to run the following commands. Use \`help\` command to view this.
+
+User Management     Items and Transactions     Auctions              UI
+===============     ======================     ========              ==
+createUser          addBalance                 createAuction         clearCommandResults
+login               listItems                  startAuction          clearFeed
+changePassword      viewTransactionHistory     bid
+resetPassword                                  sell
+verify                                         watchAuction
+logout                                         viewAuctionReport
+                                               viewAuctionHistory`,
+      warningDescCSS,
+    );
+  }
+
   constructor() {
     // Set up the WebSocket
     this.socket = new WebSocket('ws://localhost:8765');

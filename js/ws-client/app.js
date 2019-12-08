@@ -22,26 +22,8 @@ class WSClient extends React.Component {
     this.store = new WSClientStore();
     window.wsClient = this.store;
 
-    const warningTitleCSS =
-      'color:red; font-size:36px; font-weight: bold; -webkit-text-stroke: 1px black;';
-    const warningDescCSS = 'font-size: 14px;';
-
     setTimeout(() => {
-      console.log('%cBidpazari WebSocket Client', warningTitleCSS);
-      console.log(
-        `%cUse wsClient to run the following commands:
-
-User Management     Items and Transactions     Auctions              UI
-===============     ======================     ========              ==
-createUser          addBalance                 createAuction         clearCommandResults
-login               listItems                  startAuction          clearFeed
-changePassword      viewTransactionHistory     bid
-resetPassword                                  sell
-verify                                         watchAuction
-logout                                         viewAuctionReport
-                                               viewAuctionHistory`,
-        warningDescCSS,
-      );
+      this.store.help();
     }, 250);
   }
 
