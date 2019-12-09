@@ -1,12 +1,41 @@
 import {action, observable, runInAction} from 'mobx';
 import autobind from 'autobind-decorator';
 
+const colors = {
+  critical: '#dc3545',
+  success: '#28a745',
+  warning: '#ffc107',
+  default: '#6c757d',
+};
+
 export default class WSClientStore {
   @observable connected = false;
   @observable loggedIn = false;
 
   @observable commandResults = [];
   @observable feed = [];
+
+  help() {
+    const warningTitleCSS =
+      'color:red; font-size:36px; font-weight: bold; -webkit-text-stroke: 1px black;';
+    const warningDescCSS = 'font-size: 14px;';
+
+    console.log('%cBidpazari WebSocket Client', warningTitleCSS);
+    console.log(
+      `%cUse wsClient to run the following commands. Use \`help\` command to view this.
+
+User Management     Items and Transactions     Auctions              UI
+===============     ======================     ========              ==
+createUser          addBalance                 createAuction         clearCommandResults
+login               listItems                  startAuction          clearFeed
+changePassword      viewTransactionHistory     bid
+resetPassword                                  sell
+verify                                         watchAuction
+logout                                         viewAuctionReport
+                                               viewAuctionHistory`,
+      warningDescCSS,
+    );
+  }
 
   constructor() {
     // Set up the WebSocket
@@ -57,16 +86,16 @@ export default class WSClientStore {
     let color;
     switch (data.code) {
       case 0:
-        color = 'darkgreen';
+        color = colors.success;
         break;
       case 1:
-        color = 'darkorange';
+        color = colors.warning;
         break;
       case 2:
-        color = 'red';
+        color = colors.critical;
         break;
       default:
-        color = 'black';
+        color = colors.default;
         break;
     }
 
@@ -124,8 +153,11 @@ export default class WSClientStore {
     });
   }
 
-  listItems() {
-    this._sendCommand('list_items', {});
+  listItems(item_type, on_sale) {
+    this._sendCommand('list_items', {
+      item_type,
+      on_sale,
+    });
   }
 
   watchItems(item_type) {
@@ -183,11 +215,13 @@ export default class WSClientStore {
     });
   }
 
+  @autobind
   @action
   clearCommandResults() {
     this.commandResults = [];
   }
 
+  @autobind
   @action
   clearFeed() {
     this.feed = [];
@@ -211,8 +245,8 @@ export default class WSClientStore {
   @action
   onNotification(formattedData, data) {
     this.feed.unshift({
-      data: formattedData,
-      color: 'green',
+      formattedData,
+      data,
     });
   }
 }

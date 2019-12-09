@@ -15,6 +15,7 @@ from bidpazari.core.runtime.common import runtime_manager
 from bidpazari.core.runtime.exceptions import (
     AuctionDoesNotExist,
     InvalidAuctionStatus,
+    ItemAlreadyOnSale,
 )
 from bidpazari.core.runtime.net.decorators import (
     command,
@@ -205,11 +206,15 @@ async def create_auction(
         if isinstance(value, float):
             kwargs[key] = Decimal(value)
 
-    auction_id = user.create_auction(
-        item_id=item_id,
-        bidding_strategy_identifier=bidding_strategy_identifier,
-        **kwargs,
-    )
+    try:
+        auction_id = user.create_auction(
+            item_id=item_id,
+            bidding_strategy_identifier=bidding_strategy_identifier,
+            **kwargs,
+        )
+    except ItemAlreadyOnSale:
+        raise CommandFailed("Cannot create auction, item is already on sale.")
+
     auction = runtime_manager.get_auction_by_id(auction_id)
     return {'auction': {**auction.to_json()}}
 
@@ -276,7 +281,7 @@ async def watch_auction(context: CommandContext, auction_id: int):
     try:
         auction = runtime_manager.get_auction_by_id(auction_id)
     except AuctionDoesNotExist as e:
-        raise CommandFailed(f"Could not view auction report: {e}")
+        raise CommandFailed(f"Could not watch auction report: {e}")
 
     @push_notification(context.websocket)
     def notify(**kwargs):

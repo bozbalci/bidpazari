@@ -4,3 +4,7 @@ class AuctionDoesNotExist(Exception):
 
 class InvalidAuctionStatus(Exception):
     pass
+
+
+class ItemAlreadyOnSale(Exception):
+    pass
