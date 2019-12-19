@@ -1,0 +1,18 @@
+{% extends "core/legacy/__base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}
+    Add Balance
+{% endblock %}
+
+{% block content %}
+    <h2>Add Balance</h2>
+    <form action="{% url "legacy-add-balance" %}" method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit" class="btn btn-success">
+        Add Balance
+    </button>
+    </form>
+{% endblock %}

@@ -34,6 +34,12 @@ class User(TimeStampedModel, AbstractUser):
         max_length=16, default=generate_verification_number, blank=True
     )
 
+    @property
+    def runtime_user(self):
+        from bidpazari.core.runtime.common import runtime_manager
+
+        return runtime_manager.get_or_create_runtime_user(self)
+
     def verify(self, verification_number):
         if self.verification_status == User.VERIFIED:
             raise UserVerificationError("User is already verified.")

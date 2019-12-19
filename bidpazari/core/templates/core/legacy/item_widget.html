@@ -1,0 +1,12 @@
+<div class="card" style="width: 16rem;">
+    <img src="/media/{{ item.image }}" alt="{{ item.title }}" class="card-img-top" />
+    <div class="card-body">
+        <h5 class="card-title">
+            {{ item.title }}
+            {% if item.item_type %}
+                <span class="badge badge-secondary">{{ item.item_type }}</span>
+            {% endif %}
+        </h5>
+        <p class="card-text">{{ item.description }}</p>
+    </div>
+</div>

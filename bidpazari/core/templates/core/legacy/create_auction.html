@@ -1,0 +1,28 @@
+{% extends "core/legacy/__base.html" %}
+
+{% load crispy_forms_tags %}
+{% load core_extras %}
+
+{% block title %}
+    Create Auction
+{% endblock %}
+
+{% block content %}
+    <h2>Create Auction</h2>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6">
+                <form action="{% url 'legacy-create-auction' pk=item.id %}" method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="btn btn-success">
+                        Continue
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                {% item_widget %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

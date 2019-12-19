@@ -37,9 +37,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
     # Third-party apps
     'webpack_loader',
     'argonauts',
+    'crispy_forms',
     # Bidpazari
     "bidpazari.core.apps.CoreConfig",
 ]
@@ -124,6 +126,9 @@ LOGGING = {
     "loggers": {"": {"handlers": ["console"], "level": "INFO"}},
 }
 
+LOGIN_URL = '/legacy/login/'
+LOGIN_REDIRECT_URL = '/legacy/dashboard/'
+
 # Static files (JS, CSS, assets) and media (user-uploaded images)
 
 STATIC_URL = "/static/"
@@ -144,3 +149,6 @@ WEBPACK_LOADER = {
         'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json'),
     }
 }
+
+# Crispy forms
+CRISPY_TEMPLATE_PACK = 'bootstrap4'

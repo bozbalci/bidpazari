@@ -19,6 +19,7 @@ Pillow = "=6.2.1"
 django-webpack-loader = "^0.6.0"
 websockets = "^8.1"
 django-argonauts = "^1.2"
+django-crispy-forms = "^1.8"
 
 [tool.poetry.dev-dependencies]
 black = "=19.10b0"

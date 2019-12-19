@@ -1,12 +1,33 @@
-from bidpazari.core.models import UserHasItem
+from typing import Optional
+
+from bidpazari.core.models import User, UserHasItem
 from bidpazari.core.runtime.exceptions import AuctionDoesNotExist
 
 
 class RuntimeManager:
+    thread = None
+
     def __init__(self):
         self.auctions = {}
         self.item_watchers = []
         self.online_users = set()
+
+    def get_user_by_id(self, id_: int) -> Optional['RuntimeUser']:
+        for user in self.online_users:
+            if user.id == id_:
+                return user
+        return None
+
+    def get_or_create_runtime_user(self, user: User):
+        from bidpazari.core.runtime.user import RuntimeUser
+
+        runtime_user = self.get_user_by_id(user.id)
+
+        if runtime_user is None:
+            runtime_user = RuntimeUser.from_persistent_user(user)
+            runtime_user.connect()
+
+        return runtime_user
 
     def get_auction_by_id(self, id_: int):
         try:
