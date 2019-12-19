@@ -2,21 +2,16 @@
 {% load static %}
 {% load staticfiles %}
 
-<nav class="navbar navbar-dark bg-success" style="justify-content: space-evenly">
+<nav class="navbar navbar-dark bg-success" style="">
     <a class="navbar-brand" href="{% url 'legacy-dashboard' %}">
         <img src="{% static "favicon.ico" %}" width="30" height="30" class="d-inline-block align-top"  alt="Bidpazari" />
         <span class="ml-n1">Bidpazari</span>
     </a>
-    <div class="text-light text-bold">
+    <div class="ml-auto">
         {% if user.is_authenticated %}
-            Balance: ${{ user.runtime_user.initial_balance|floatformat:2|intcomma }}
-            <small>
-                <a class="text-light" href="{% url 'legacy-add-balance' %}">(add)</a>
-            </small>
-        {% endif %}
-    </div>
-    <div class="">
-        {% if user.is_authenticated %}
+            <a class="btn btn-outline-light" href="{% url 'legacy-add-balance' %}">
+                Wallet: ${{ user.runtime_user.initial_balance|floatformat:2|intcomma }}
+            </a>
             <a class="btn btn-outline-light" href="{% url 'legacy-logout' %}">
                 Logout
             </a>

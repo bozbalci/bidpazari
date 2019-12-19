@@ -1,18 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Bidpazari</title>
-</head>
-<body>
-Welcome to the Bidpazari project. The following links may be useful:
-<dl>
-    <dt><a href="{% url 'ws-client' %}">ws_client/</a></dt>
-    <dd>The Bidpazari WebSocket Client.</dd>
-    <dt><a href="{% url 'legacy-index' %}">legacy/</a></dt>
-    <dd>Phase III implementation.</dd>
-    <dt><a href="/admin/">admin/</a></dt>
-    <dd>The Django admin page.</dd>
-</dl>
-</body>
-</html>
+{% extends "core/legacy/__base.html" %}
+
+{% block title %}
+    Home
+{% endblock %}
+
+{% block content %}
+    {% if not user.is_authenticated %}
+        <div class="jumbotron">
+            <h1 class="display-4">Welcome to Bidpazari!</h1>
+            <p class="lead">It's like eBay, but much worse.</p>
+            <hr class="my-4">
+            <p>{% lorem %}</p>
+            <a class="btn btn-primary btn-lg" href="{% url "legacy-login" %}" role="button">Login</a>
+        </div>
+    {% endif %}
+    <p>The following links may be useful:</p>
+    <dl>
+        <dt><a href="{% url 'ws-server' %}">ws_server/</a></dt>
+        <dd>Follow this link to start the Pazar.</dd>
+        <dt><a href="{% url 'ws-client' %}">ws_client/</a></dt>
+        <dd>The Bidpazari WebSocket Client.</dd>
+        <dt><a href="/admin/">admin/</a></dt>
+        <dd>The Django admin page.</dd>
+    </dl>
+{% endblock %}

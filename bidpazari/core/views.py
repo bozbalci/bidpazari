@@ -48,7 +48,7 @@ class WSClientView(TemplateView):
 
 
 class LegacyView(TemplateView):
-    template_name = 'core/legacy/index.html'
+    template_name = 'core/index.html'
 
 
 class LogoutView(View):
