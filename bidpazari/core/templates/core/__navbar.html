@@ -13,30 +13,30 @@
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
+    {% if user.is_authenticated %}
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item {% active_url 'dashboard' %}">
-                <a class="nav-link" href="{% url 'dashboard' %}">Home</a>
+                <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
             </li>
             <li class="nav-item {% active_url 'auctions' %}">
-                <a class="nav-link" href="#">Auctions</a>
+                <a class="nav-link" href="{% url 'auctions' %}">Auctions</a>
             </li>
-            <li class="nav-item" {% active_url 'transactions' %}>
-                <a class="nav-link" href="#">Transactions</a>
+            <li class="nav-item {% active_url 'transactions' %}">
+                <a class="nav-link" href="{% url 'transactions' %}">Transactions</a>
             </li>
-            <li class="nav-item" {% active_url 'account' %}>
+            <li class="nav-item {% active_url 'account' %}">
                 <a class="nav-link" href="#">Account</a>
             </li>
         </ul>
-        <form class="form-inline my-lg-0">
-        {% if user.is_authenticated %}
+        <form class="form-inline my-2 my-md-0">
             <a class="btn btn-outline-light mr-2" href="{% url 'add-balance' %}">
-                Wallet: ${{ user.runtime_user.initial_balance|floatformat:2|intcomma }}
+                Wallet: {{ user.runtime_user.initial_balance|money }}
             </a>
             <a class="btn btn-outline-light" href="{% url 'logout' %}">
                 Logout
             </a>
-        {% endif %}
         </form>
+    {% endif %}
     </div>
 </nav>

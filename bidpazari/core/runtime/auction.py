@@ -165,6 +165,31 @@ Bidding Details
             'bidding_details': self.bidding_strategy.get_auction_report_text(),
         }
 
+    def to_django(self):
+        (
+            current_winner,
+            winning_amount,
+        ) = self.bidding_strategy.get_current_winner_and_amount()
+        bidding_strategy_name = BiddingStrategyFactory.BIDDING_STRATEGY_HUMAN_READABLE[
+            self.bidding_strategy_identifier
+        ]
+
+        if current_winner:
+            current_winner = current_winner.persistent_user.get_full_name()
+        else:
+            current_winner = 'Nobody'
+
+        return {
+            'id': self.id,
+            'status': self.status,
+            'item': self.item,
+            'owner': self.owner,
+            'bidding_strategy': bidding_strategy_name,
+            'bidding_strategy_help': self.bidding_strategy.get_auction_report_text(),
+            'current_price': current_winner,
+            'winning_amount': winning_amount,
+        }
+
     def register_user_to_updates(self, callback_method):
         auction_watcher = AuctionWatcher(callback_method)
         self.auction_watchers.append(auction_watcher)

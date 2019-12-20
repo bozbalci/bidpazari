@@ -4,6 +4,7 @@ import threading
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import urlencode
@@ -18,7 +19,7 @@ from bidpazari.core.forms import (
     ItemForm,
     SignupForm,
 )
-from bidpazari.core.models import Item, UserHasItem
+from bidpazari.core.models import Item, Transaction, UserHasItem
 from bidpazari.core.runtime.common import runtime_manager
 
 
@@ -228,3 +229,55 @@ class CreateAuctionStep2View(View):
             'core/create_auction_confirm.html',
             {'form': form, 'bidding_strategy': bidding_strategy, 'item': item},
         )
+
+
+class AuctionsView(TemplateView):
+    template_name = 'core/auctions.html'
+
+    def get_context_data(self, **kwargs):
+        auctions = []
+        for id_, auction in runtime_manager.auctions.items():
+            auctions.append(auction.to_django())
+
+        return {'auctions': auctions}
+
+
+class AuctionDetailsView(TemplateView):
+    template_name = 'core/auction_details.html'
+
+    def get_context_data(self, **kwargs):
+        pk = kwargs['pk']
+
+        try:
+            auction = runtime_manager.auctions[pk]
+        except KeyError:
+            raise Http404(f"Auction with ID {pk} not found.")
+
+        return {'auction': auction.to_django()}
+
+
+class TransactionsView(TemplateView):
+    template_name = 'core/transactions.html'
+
+    def get_context_data(self, **kwargs):
+        user = self.request.user
+
+        purchases = Transaction.objects.filter(
+            source=user, item__isnull=False
+        ).order_by('-created')
+        sales = Transaction.objects.filter(
+            destination=user, item__isnull=False
+        ).order_by('-created')
+        deposits = Transaction.objects.filter(
+            source=None, destination=user, amount__gt=0
+        ).order_by('-created')
+        withdrawals = Transaction.objects.filter(
+            source=None, destination=user, amount__lte=0
+        ).order_by('-created')
+
+        return {
+            'purchases': purchases,
+            'sales': sales,
+            'deposits': deposits,
+            'withdrawals': withdrawals,
+        }

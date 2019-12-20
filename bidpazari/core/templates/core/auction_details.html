@@ -1,0 +1,11 @@
+{% extends "core/__base.html" %}
+
+{% load core.tags %}
+
+{% block title %}
+    Auction - {{ auction.item.title }}
+{% endblock %}
+
+{% block content %}
+    {{ auction }}
+{% endblock %}

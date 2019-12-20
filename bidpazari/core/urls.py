@@ -10,16 +10,21 @@ legacy_urlpatterns = [
     path('login/', LoginView.as_view(template_name='core/login.html'), name='login',),
     path('logout/', views.LogoutView.as_view(), name='logout'),
     path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
+    path('auctions/', views.AuctionsView.as_view(), name='auctions'),
+    path(
+        'auctions/<int:pk>/', views.AuctionDetailsView.as_view(), name='auction-details'
+    ),
+    path('transactions/', views.TransactionsView.as_view(), name='transactions'),
     path('add-item/', views.AddItemView.as_view(), name='add-item'),
-    path('edit-item/<int:pk>', views.EditItemView.as_view(), name='edit-item'),
+    path('edit-item/<int:pk>/', views.EditItemView.as_view(), name='edit-item'),
     path('add-balance/', views.AddBalanceView.as_view(), name='add-balance'),
     path(
-        'create-auction/<int:pk>',
+        'create-auction/<int:pk>/',
         views.CreateAuctionStep1View.as_view(),
         name='create-auction',
     ),
     path(
-        'create-auction/<int:pk>/confirm',
+        'create-auction/<int:pk>/confirm/',
         views.CreateAuctionStep2View.as_view(),
         name='create-auction-confirm',
     ),

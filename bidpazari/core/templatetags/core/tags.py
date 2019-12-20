@@ -1,6 +1,9 @@
 import re
+from decimal import Decimal
 
 from django import template
+from django.contrib.humanize.templatetags.humanize import intcomma
+from django.template.defaultfilters import floatformat
 from django.urls import NoReverseMatch, reverse
 
 register = template.Library()
@@ -20,3 +23,28 @@ def active_url(context, url):
 
     path = context['request'].path
     return "active" if re.search(pattern, path) else ""
+
+
+@register.filter(name='money')
+def money(value):
+    try:
+        value = Decimal(value)
+    except (TypeError, ValueError):
+        return 'N/A'
+    minus = value < 0
+    if minus:
+        value = -value
+    value = floatformat(value, arg=2)
+    value = intcomma(value)
+    if minus:
+        return f'-${value}'
+    return f'${value}'
+
+
+@register.filter(name='bidding_strategy')
+def humanize_bidding_strategy(value):
+    return {
+        'increment': 'Increment',
+        'decrement': 'Decrement',
+        'highest_contribution': 'Highest Contribution',
+    }.get(value, 'Invalid')
