@@ -197,3 +197,8 @@ class UserHasItem(TimeStampedModel):
     is_sold = models.BooleanField(default=False)
 
     objects = UserHasItemQuerySet.as_manager()
+
+    def __str__(self):
+        return (
+            f'{"[SOLD]" if self.is_sold else ""}' f'{self.user} has {self.item.title}'
+        )

@@ -1,0 +1,42 @@
+{% load humanize %}
+{% load static %}
+{% load staticfiles %}
+
+{% load core.tags %}
+
+<nav class="navbar navbar-expand-md navbar-dark bg-success" style="">
+    <a class="navbar-brand" href="{% url 'index' %}">
+        <img src="{% static "favicon.ico" %}" width="30" height="30" class="d-inline-block align-top"  alt="Bidpazari" />
+        <span class="ml-n1">Bidpazari</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item {% active_url 'dashboard' %}">
+                <a class="nav-link" href="{% url 'dashboard' %}">Home</a>
+            </li>
+            <li class="nav-item {% active_url 'auctions' %}">
+                <a class="nav-link" href="#">Auctions</a>
+            </li>
+            <li class="nav-item" {% active_url 'transactions' %}>
+                <a class="nav-link" href="#">Transactions</a>
+            </li>
+            <li class="nav-item" {% active_url 'account' %}>
+                <a class="nav-link" href="#">Account</a>
+            </li>
+        </ul>
+        <form class="form-inline my-lg-0">
+        {% if user.is_authenticated %}
+            <a class="btn btn-outline-light mr-2" href="{% url 'add-balance' %}">
+                Wallet: ${{ user.runtime_user.initial_balance|floatformat:2|intcomma }}
+            </a>
+            <a class="btn btn-outline-light" href="{% url 'logout' %}">
+                Logout
+            </a>
+        {% endif %}
+        </form>
+    </div>
+</nav>

@@ -1,4 +1,4 @@
-{% extends "core/legacy/__base.html" %}
+{% extends "core/__base.html" %}
 
 {% load staticfiles %}
 
@@ -24,7 +24,7 @@
             <th>Sold?</th>
             <th></th>
             <th>
-                <a class="btn btn-primary" href="{% url 'legacy-add-item' %}">
+                <a class="btn btn-primary" href="{% url 'add-item' %}">
                     Add
                 </a>
             </th>
@@ -44,12 +44,12 @@
                 <td>{{ item.description | default:"-" }}</td>
                 <td>{{ item.is_sold | yesno | capfirst }}</td>
                 <td>
-                    <a class="btn btn-success" href="{% url 'legacy-create-auction' pk=item.id %}">
+                    <a class="btn btn-success" href="{% url 'create-auction' pk=item.id %}">
                         Sell
                     </a>
                 </td>
                 <td>
-                    <a class="btn btn-secondary" href="{% url 'legacy-edit-item' pk=item.id %}">
+                    <a class="btn btn-secondary" href="{% url 'edit-item' pk=item.id %}">
                         Edit
                     </a>
                 </td>

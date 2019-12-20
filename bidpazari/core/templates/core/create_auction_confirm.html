@@ -1,7 +1,8 @@
-{% extends "core/legacy/__base.html" %}
+{% extends "core/__base.html" %}
 
 {% load crispy_forms_tags %}
-{% load core_extras %}
+
+{% load core.tags %}
 
 {% block title %}
     Create Auction
@@ -9,14 +10,16 @@
 
 {% block content %}
     <h2>Create Auction</h2>
+    <p>Auction type: {{ bidding_strategy }}</p>
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-6">
-                <form action="{% url 'legacy-create-auction' pk=item.id %}" method="post">
+                <form action="{% url 'create-auction-confirm' pk=item.id %}" method="post">
                     {% csrf_token %}
                     {{ form|crispy }}
+                    <input type="hidden" name="bidding_strategy" value="{{ bidding_strategy }}">
                     <button type="submit" class="btn btn-success">
-                        Continue
+                        Create Auction
                     </button>
                 </form>
             </div>
@@ -24,5 +27,6 @@
                 {% item_widget %}
             </div>
         </div>
+
     </div>
 {% endblock %}

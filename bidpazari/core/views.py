@@ -2,7 +2,7 @@ import asyncio
 import threading
 
 from django.contrib import messages
-from django.contrib.auth import logout
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -16,6 +16,7 @@ from bidpazari.core.forms import (
     CreateHighestContributionAuctionForm,
     CreateIncrementAuctionForm,
     ItemForm,
+    SignupForm,
 )
 from bidpazari.core.models import Item, UserHasItem
 from bidpazari.core.runtime.common import runtime_manager
@@ -47,8 +48,22 @@ class WSClientView(TemplateView):
         return {'props': {'test': 42}}
 
 
-class LegacyView(TemplateView):
-    template_name = 'core/index.html'
+class SignupView(View):
+    def get(self, request, *args, **kwargs):
+        return render(request, 'core/signup.html', {'form': SignupForm()})
+
+    def post(self, request, *args, **kwargs):
+        form = SignupForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=raw_password)
+            login(request, user)
+            return redirect(reverse('dashboard'))
+
+        return render(request, 'core/signup.html', {'form': form})
 
 
 class LogoutView(View):
@@ -57,7 +72,7 @@ class LogoutView(View):
         runtime_user.disconnect()
         logout(request)
         messages.add_message(request, messages.INFO, 'You have logged out.')
-        return redirect(reverse('legacy-index'))
+        return redirect(reverse('index'))
 
 
 class DashboardView(LoginRequiredMixin, View):
@@ -66,14 +81,14 @@ class DashboardView(LoginRequiredMixin, View):
 
         context = {'items': runtime_user.list_items()}
 
-        return render(request, 'core/legacy/dashboard.html', context)
+        return render(request, 'core/dashboard.html', context)
 
 
 class AddItemView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         context = {'form': ItemForm()}
 
-        return render(request, 'core/legacy/add_item.html', context)
+        return render(request, 'core/add_item.html', context)
 
     def post(self, request, *args, **kwargs):
         form = ItemForm(request.POST, request.FILES)
@@ -86,7 +101,7 @@ class AddItemView(LoginRequiredMixin, View):
                 messages.INFO,
                 f'Successfully added {instance.title} to your items.',
             )
-            return redirect(reverse('legacy-dashboard'))
+            return redirect(reverse('dashboard'))
 
 
 class EditItemView(LoginRequiredMixin, View):
@@ -99,7 +114,7 @@ class EditItemView(LoginRequiredMixin, View):
             'form': ItemForm(instance=item),
         }
 
-        return render(request, 'core/legacy/edit_item.html', context)
+        return render(request, 'core/edit_item.html', context)
 
     def post(self, request, *args, **kwargs):
         pk = kwargs['pk']
@@ -111,7 +126,7 @@ class EditItemView(LoginRequiredMixin, View):
             messages.add_message(
                 request, messages.INFO, f'Successfully edited {instance.title}.'
             )
-            return redirect(reverse('legacy-dashboard'))
+            return redirect(reverse('dashboard'))
 
 
 class AddBalanceView(View):
@@ -128,11 +143,11 @@ class AddBalanceView(View):
                 message = f'Removed ${-amount} from your balance.'
             messages.add_message(request, messages.INFO, message)
 
-            return redirect(reverse('legacy-dashboard'))
+            return redirect(reverse('dashboard'))
 
     def get(self, request, *args, **kwargs):
         return render(
-            request, 'core/legacy/add_balance.html', context={'form': AddBalanceForm()}
+            request, 'core/add_balance.html', context={'form': AddBalanceForm()}
         )
 
 
@@ -146,7 +161,7 @@ class CreateAuctionStep1View(View):
             'form': CreateAuctionStep1Form(),
         }
 
-        return render(request, 'core/legacy/create_auction.html', context)
+        return render(request, 'core/create_auction.html', context)
 
     def post(self, request, *args, **kwargs):
         pk = kwargs['pk']
@@ -157,7 +172,7 @@ class CreateAuctionStep1View(View):
         if form.is_valid():
             bidding_strategy = form.cleaned_data['bidding_strategy']
             response = redirect(
-                reverse('legacy-create-auction-confirm', kwargs={'pk': item.id})
+                reverse('create-auction-confirm', kwargs={'pk': item.id})
             )
             response['Location'] += '?' + urlencode(
                 {'bidding_strategy': bidding_strategy}
@@ -184,7 +199,7 @@ class CreateAuctionStep2View(View):
 
         context = {'item': item, 'form': form, 'bidding_strategy': bidding_strategy}
 
-        return render(request, 'core/legacy/create_auction_confirm.html', context)
+        return render(request, 'core/create_auction_confirm.html', context)
 
     def post(self, request, *args, **kwargs):
         pk = kwargs['pk']
@@ -203,4 +218,4 @@ class CreateAuctionStep2View(View):
                 **form.cleaned_data,
             )
             messages.add_message(request, messages.INFO, 'Auction has been created.')
-            return redirect(reverse('legacy-dashboard'))
+            return redirect(reverse('dashboard'))

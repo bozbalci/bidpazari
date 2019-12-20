@@ -126,8 +126,8 @@ LOGGING = {
     "loggers": {"": {"handlers": ["console"], "level": "INFO"}},
 }
 
-LOGIN_URL = '/legacy/login/'
-LOGIN_REDIRECT_URL = '/legacy/dashboard/'
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
 
 # Static files (JS, CSS, assets) and media (user-uploaded images)
 

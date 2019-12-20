@@ -1,4 +1,4 @@
-{% extends "core/legacy/__base.html" %}
+{% extends "core/__base.html" %}
 
 {% block title %}
     Home
@@ -11,16 +11,18 @@
             <p class="lead">It's like eBay, but much worse.</p>
             <hr class="my-4">
             <p>{% lorem %}</p>
-            <a class="btn btn-primary btn-lg" href="{% url "legacy-login" %}" role="button">Login</a>
+            <a class="btn btn-primary btn-lg mr-1" href="{% url "signup" %}" role="button">Sign up</a>
+            <a class="btn btn-outline-primary btn-lg" href="{% url "login" %}" role="button">Log in</a>
         </div>
     {% endif %}
-    <p>The following links may be useful:</p>
+    <h3>Links</h3>
+    <p>Here are links to various pages that may be helpful:</p>
     <dl>
-        <dt><a href="{% url 'ws-server' %}">ws_server/</a></dt>
+        <dt><a href="{% url 'ws-server' %}">WS Server</a></dt>
         <dd>Follow this link to start the Pazar.</dd>
-        <dt><a href="{% url 'ws-client' %}">ws_client/</a></dt>
+        <dt><a href="{% url 'ws-client' %}">WS Client</a></dt>
         <dd>The Bidpazari WebSocket Client.</dd>
-        <dt><a href="/admin/">admin/</a></dt>
+        <dt><a href="{% url 'admin:index' %}">Admin</a></dt>
         <dd>The Django admin page.</dd>
     </dl>
 {% endblock %}
