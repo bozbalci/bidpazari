@@ -66,7 +66,7 @@ class SignupView(View):
         return render(request, 'core/signup.html', {'form': form})
 
 
-class LogoutView(View):
+class LogoutView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         runtime_user = request.user.runtime_user
         runtime_user.disconnect()
@@ -79,16 +79,14 @@ class DashboardView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         runtime_user = request.user.runtime_user
 
-        context = {'items': runtime_user.list_items()}
-
-        return render(request, 'core/dashboard.html', context)
+        return render(
+            request, 'core/dashboard.html', {'items': runtime_user.list_items()}
+        )
 
 
 class AddItemView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        context = {'form': ItemForm()}
-
-        return render(request, 'core/add_item.html', context)
+        return render(request, 'core/add_item.html', {'form': ItemForm()})
 
     def post(self, request, *args, **kwargs):
         form = ItemForm(request.POST, request.FILES)
@@ -103,18 +101,19 @@ class AddItemView(LoginRequiredMixin, View):
             )
             return redirect(reverse('dashboard'))
 
+        return render(request, 'core/add_item.html', {'form': form})
+
 
 class EditItemView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         pk = kwargs['pk']
         item = get_object_or_404(Item, pk=pk)
 
-        context = {
-            'item': item,
-            'form': ItemForm(instance=item),
-        }
-
-        return render(request, 'core/edit_item.html', context)
+        return render(
+            request,
+            'core/edit_item.html',
+            {'item': item, 'form': ItemForm(instance=item),},
+        )
 
     def post(self, request, *args, **kwargs):
         pk = kwargs['pk']
@@ -128,8 +127,13 @@ class EditItemView(LoginRequiredMixin, View):
             )
             return redirect(reverse('dashboard'))
 
+        return render(request, 'core/edit_item.html', {'item': instance, 'form': form})
+
 
 class AddBalanceView(View):
+    def get(self, request, *args, **kwargs):
+        return render(request, 'core/add_balance.html', {'form': AddBalanceForm()})
+
     def post(self, request, *args, **kwargs):
         form = AddBalanceForm(request.POST)
 
@@ -145,10 +149,7 @@ class AddBalanceView(View):
 
             return redirect(reverse('dashboard'))
 
-    def get(self, request, *args, **kwargs):
-        return render(
-            request, 'core/add_balance.html', context={'form': AddBalanceForm()}
-        )
+        return render(request, 'core/add_balance.html', {'form': form})
 
 
 class CreateAuctionStep1View(View):
@@ -156,17 +157,15 @@ class CreateAuctionStep1View(View):
         pk = kwargs['pk']
         item = get_object_or_404(Item, pk=pk)
 
-        context = {
-            'item': item,
-            'form': CreateAuctionStep1Form(),
-        }
-
-        return render(request, 'core/create_auction.html', context)
+        return render(
+            request,
+            'core/create_auction.html',
+            {'item': item, 'form': CreateAuctionStep1Form(),},
+        )
 
     def post(self, request, *args, **kwargs):
         pk = kwargs['pk']
         item = get_object_or_404(Item, pk=pk)
-
         form = CreateAuctionStep1Form(request.POST)
 
         if form.is_valid():
@@ -178,6 +177,10 @@ class CreateAuctionStep1View(View):
                 {'bidding_strategy': bidding_strategy}
             )
             return response
+
+        return render(
+            request, 'core/create_auction.html', {'item': item, 'form': form,}
+        )
 
 
 class CreateAuctionStep2View(View):
@@ -219,3 +222,9 @@ class CreateAuctionStep2View(View):
             )
             messages.add_message(request, messages.INFO, 'Auction has been created.')
             return redirect(reverse('dashboard'))
+
+        return render(
+            request,
+            'core/create_auction_confirm.html',
+            {'form': form, 'bidding_strategy': bidding_strategy, 'item': item},
+        )
