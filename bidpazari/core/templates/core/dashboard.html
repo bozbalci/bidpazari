@@ -30,14 +30,20 @@
         {% for item in items %}
             <tr>
                 <td>
-                    <img src="{{ item.image|item_image }}" alt="{{ item.title }}" height="100" />
+                    <img style="max-height: 100px" src="{{ item.image|item_image }}" alt="{{ item.title }}" width="100" />
                 </td>
                 <td>{{ item.title }}</td>
                 <td>{{ item.description | default:"-" }}</td>
                 <td>
-                    <a class="btn btn-success" href="{% url 'create-auction' pk=item.id %}">
-                        Sell
-                    </a>
+                    {% if item.on_sale %}
+                        <a class="btn btn-info" href="{% url 'auction-details' pk=item.current_uhi.id %}">
+                            View Auction
+                        </a>
+                    {% else %}
+                        <a class="btn btn-success" href="{% url 'create-auction' pk=item.id %}">
+                            Sell
+                        </a>
+                    {% endif %}
                 </td>
                 <td>
                     <a class="btn btn-secondary" href="{% url 'edit-item' pk=item.id %}">

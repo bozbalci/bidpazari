@@ -89,9 +89,6 @@ class RuntimeUser:
     def create_auction(self, item_id: int, bidding_strategy_identifier: str, **kwargs):
         uhi = UserHasItem.objects.get(user_id=self.id, item_id=item_id, is_sold=False)
 
-        if uhi.id in runtime_manager.auctions:
-            raise ItemAlreadyOnSale()
-
         runtime_manager.create_auction(
             uhi=uhi, bidding_strategy_identifier=bidding_strategy_identifier, **kwargs
         )

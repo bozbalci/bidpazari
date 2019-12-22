@@ -24,11 +24,14 @@ from bidpazari.core.forms import (
     ItemForm,
     SignupForm,
 )
-from bidpazari.core.helpers import get_auction_or_404
+from bidpazari.core.helpers import get_auction_or_404, zen
 from bidpazari.core.models import Item, Transaction, UserHasItem
 from bidpazari.core.runtime.auction import AuctionStatus
 from bidpazari.core.runtime.common import runtime_manager
-from bidpazari.core.runtime.exceptions import InvalidAuctionStatus
+from bidpazari.core.runtime.exceptions import (
+    InvalidAuctionStatus,
+    ItemAlreadyOnSale,
+)
 from bidpazari.core.templatetags.core.tags import money
 
 
@@ -56,6 +59,13 @@ class WSClientView(TemplateView):
 
     def get_context_data(self, **kwargs):
         return {'props': {'test': 42}}
+
+
+class IndexView(TemplateView):
+    template_name = 'core/index.html'
+
+    def get_context_data(self, **kwargs):
+        return {'zen': zen}
 
 
 class SignupView(View):
@@ -87,11 +97,12 @@ class LogoutView(LoginRequiredMixin, View):
 
 class DashboardView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        runtime_user = request.user.runtime_user
+        items = request.user.list_items()
 
-        return render(
-            request, 'core/dashboard.html', {'items': runtime_user.list_items()}
-        )
+        for item in items:
+            item.current_uhi = UserHasItem.objects.get(item=item, is_sold=False)
+
+        return render(request, 'core/dashboard.html', {'items': items})
 
 
 class AddItemView(LoginRequiredMixin, View):
@@ -225,17 +236,21 @@ class CreateAuctionStep2View(LoginRequiredMixin, View):
         form = form_class(request.POST)
 
         if form.is_valid():
-            auction = runtime_manager.create_auction(
-                uhi=uhi,
-                bidding_strategy_identifier=bidding_strategy,
-                **form.cleaned_data,
-            )
-            messages.add_message(
-                request,
-                messages.INFO,
-                'Created the auction! If the below details look correct to you, hit start and let the games begin!',
-            )
-            return redirect(reverse('auction-details', kwargs={'pk': auction.id}))
+            try:
+                auction = runtime_manager.create_auction(
+                    uhi=uhi,
+                    bidding_strategy_identifier=bidding_strategy,
+                    **form.cleaned_data,
+                )
+            except ItemAlreadyOnSale as e:
+                messages.add_message(request, messages.ERROR, str(e))
+            else:
+                messages.add_message(
+                    request,
+                    messages.INFO,
+                    'Created the auction! If the below details look correct to you, hit start and let the games begin!',
+                )
+                return redirect(reverse('auction-details', kwargs={'pk': auction.id}))
 
         return render(
             request,

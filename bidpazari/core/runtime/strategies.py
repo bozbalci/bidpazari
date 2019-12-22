@@ -65,6 +65,8 @@ class IncrementBiddingStrategy(BaseBiddingStrategy):
         self.maximum_price = maximum_price
         self.highest_bid = initial_price
         self.highest_bidder = None
+        # TODO Refactor this to be bidding_history itself.
+        self.bids_by_user = defaultdict(Decimal)
 
     def reserve_for_bid(self, bidder, amount):
         if amount < self.highest_bid:
@@ -76,15 +78,26 @@ class IncrementBiddingStrategy(BaseBiddingStrategy):
 
     def stop(self):
         for bidder in self.bidders:
-            bidder.unreserve_all()
+            amount = self.bids_by_user[bidder]
+            bidder.unreserve_balance(amount)
+            self.bids_by_user[bidder] = Decimal('0')
 
         super().stop()
 
     def bid(self, bidder: "RuntimeUser", amount):
-        bidder.unreserve_all()
-        self.reserve_for_bid(bidder, amount)
+        past_bidding_amount = self.bids_by_user[bidder]
+        bidder.unreserve_balance(past_bidding_amount)
+        self.bids_by_user[bidder] = Decimal('0')
+
+        try:
+            self.reserve_for_bid(bidder, amount)
+        except:
+            bidder.reserve_balance(past_bidding_amount)
+            raise
 
         super().bid(bidder, amount)  # log to bidding history
+        self.bids_by_user[bidder] += amount
+        # This must be the highest bid, since no other bids are allowed.
         self.highest_bid = amount
         self.highest_bidder = bidder
 

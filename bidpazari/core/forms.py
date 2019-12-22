@@ -17,7 +17,7 @@ class SignupForm(UserCreationForm):
 class ItemForm(forms.ModelForm):
     class Meta:
         model = Item
-        fields = ['title', 'item_type', 'description', 'image']
+        fields = ['title', 'item_type', 'description', 'on_sale', 'image']
 
 
 class AddBalanceForm(forms.Form):

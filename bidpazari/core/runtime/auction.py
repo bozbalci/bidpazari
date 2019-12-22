@@ -103,6 +103,9 @@ class Auction:
         else:
             self.log_event("Auction reached minimum price with no bidders.")
 
+        self.item.on_sale = False
+        self.item.save()
+
         self.on_bidding_updated(
             type="auction_stopped",
             data={

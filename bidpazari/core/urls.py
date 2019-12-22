@@ -1,11 +1,10 @@
 from django.contrib.auth.views import LoginView
 from django.urls import include, path
-from django.views.generic import TemplateView
 
 from bidpazari.core import views
 
 legacy_urlpatterns = [
-    path('', TemplateView.as_view(template_name='core/index.html'), name='index'),
+    path('', views.IndexView.as_view(), name='index'),
     path('signup/', views.SignupView.as_view(), name='signup',),
     path('login/', LoginView.as_view(template_name='core/login.html'), name='login',),
     path('logout/', views.LogoutView.as_view(), name='logout'),

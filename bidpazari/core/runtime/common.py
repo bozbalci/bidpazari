@@ -1,7 +1,10 @@
 from typing import Optional
 
 from bidpazari.core.models import User, UserHasItem
-from bidpazari.core.runtime.exceptions import AuctionDoesNotExist
+from bidpazari.core.runtime.exceptions import (
+    AuctionDoesNotExist,
+    ItemAlreadyOnSale,
+)
 
 
 class RuntimeManager:
@@ -40,11 +43,14 @@ class RuntimeManager:
     ) -> 'Auction':
         from bidpazari.core.runtime.auction import Auction
 
-        # TODO if item is already being auctioned, raise an exception here
+        if uhi.item.on_sale:
+            raise ItemAlreadyOnSale("This item is already on sale!")
 
         auction = Auction(
             uhi=uhi, bidding_strategy_identifier=bidding_strategy_identifier, **kwargs
         )
+        auction.item.on_sale = True
+        auction.item.save()
         self.auctions[uhi.id] = auction
         self.notify_users_of_new_auction(auction)
         return auction
