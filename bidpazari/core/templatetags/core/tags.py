@@ -17,7 +17,7 @@ def item_widget(context):
 @register.simple_tag(takes_context=True)
 def active_url(context, url):
     try:
-        pattern = f'^{reverse(url)}$'
+        pattern = f'^{reverse(url)}'
     except NoReverseMatch:
         pattern = url
 
@@ -48,3 +48,10 @@ def humanize_bidding_strategy(value):
         'decrement': 'Decrement',
         'highest_contribution': 'Highest Contribution',
     }.get(value, 'Invalid')
+
+
+@register.filter(name='item_image')
+def item_image(value):
+    if not value:
+        return "/static/assets/images/question.jpg"
+    return f"/media/{value}"

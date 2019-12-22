@@ -8,46 +8,50 @@
 
 {% block content %}
     <h3>Auctions</h3>
-    <div class="container-fluid">
+    {% if auctions %}
         {% for auction in auctions %}
-            <div class="row">
-                <div class="col">
-                    <div class="card mb-3" style="max-width: 540px;">
-                        <div class="row no-gutters">
-                            <div class="col-md-4">
-                                <img src="/media/{{ auction.item.image }}" alt="{{ auction.item.title }}"
-                                     class="card-img">
-                            </div>
-                            <div class="col-md-8">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ auction.item.title }}</h5>
-                                    <h6 class="card-subtitle mb-2 text-muted">{{ auction.item.item_type }}</h6>
-                                    <p class="card-text">{{ auction.item.description }}</p>
-                                    <a href="{% url 'auction-details' pk=auction.id %}" class="btn btn-success">
-                                        View
-                                    </a>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col">
+                        <div class="card mb-3" style="max-width: 540px;">
+                            <div class="row no-gutters">
+                                <div class="col-md-4">
+                                    <img src="{{ auction.item.image|item_image }}" alt="{{ auction.item.title }}"
+                                         class="card-img">
                                 </div>
-                                <ul class="list-group list-group-flush">
-                                    <li class="list-group-item">
+                                <div class="col-md-8">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ auction.item.title }}</h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">{{ auction.item.item_type }}</h6>
+                                        <p class="card-text">{{ auction.item.description }}</p>
+                                        <a href="{% url 'auction-details' pk=auction.id %}" class="btn btn-success">
+                                            View
+                                        </a>
+                                    </div>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item">
                                     <span class="badge badge-primary">
                                         {{ auction.bidding_strategy }}
                                     </span>
-                                        <span class="badge badge-secondary">
+                                            <span class="badge badge-secondary">
                                         {{ auction.status|title }}
                                     </span>
-                                    </li>
-                                    <li class="list-group-item">
-                                        <b>Current price:</b> {{ auction.winning_amount|money }}
-                                    </li>
-                                    <li class="list-group-item">
-                                        <b>Owner:</b> {{ auction.owner.get_full_name }}
-                                    </li>
-                                </ul>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <b>Current price:</b> {{ auction.current_price|money }}
+                                        </li>
+                                        <li class="list-group-item">
+                                            <b>Owner:</b> {{ auction.owner.get_full_name }}
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         {% endfor %}
-    </div>
+    {% else %}
+        <p>There are currently no auctions.</p>
+    {% endif %}
 {% endblock %}

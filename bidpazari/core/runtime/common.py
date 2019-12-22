@@ -37,7 +37,7 @@ class RuntimeManager:
 
     def create_auction(
         self, uhi: UserHasItem, bidding_strategy_identifier: str, **kwargs
-    ):
+    ) -> 'Auction':
         from bidpazari.core.runtime.auction import Auction
 
         # TODO if item is already being auctioned, raise an exception here

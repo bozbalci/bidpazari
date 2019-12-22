@@ -14,6 +14,20 @@ legacy_urlpatterns = [
     path(
         'auctions/<int:pk>/', views.AuctionDetailsView.as_view(), name='auction-details'
     ),
+    path(
+        'auctions/<int:pk>/start/',
+        views.AuctionStartView.as_view(),
+        name='auction-start',
+    ),
+    path(
+        'auctions/<int:pk>/cancel/',
+        views.AuctionCancelView.as_view(),
+        name='auction-cancel',
+    ),
+    path(
+        'auctions/<int:pk>/sell/', views.AuctionSellView.as_view(), name='auction-sell'
+    ),
+    path('auctions/<int:pk>/bid/', views.AuctionBidView.as_view(), name='auction-bid'),
     path('transactions/', views.TransactionsView.as_view(), name='transactions'),
     path('add-item/', views.AddItemView.as_view(), name='add-item'),
     path('edit-item/<int:pk>/', views.EditItemView.as_view(), name='edit-item'),

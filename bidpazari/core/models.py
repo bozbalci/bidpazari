@@ -80,6 +80,7 @@ class User(TimeStampedModel, AbstractUser):
     def list_items(self, item_type=None, on_sale=None):
         item_ids = (
             UserHasItem.objects.filter_by_user(self)
+            .filter(is_sold=False)
             .filter_by_item_type(item_type)
             .filter_by_on_sale(on_sale)
             .values_list("item", flat=True)

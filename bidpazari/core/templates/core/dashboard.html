@@ -2,26 +2,22 @@
 
 {% load staticfiles %}
 
+{% load core.tags %}
+
 {% block title %}
     Dashboard
 {% endblock %}
 
 {% block content %}
-    <h1>
-        Hello, {{ request.user.get_full_name }}!
-    </h1>
-    <p>
-    {% lorem %}
-    </p>
-
-    <h3>Your Items</h3>
+    <h3>
+        Your Items
+    </h3>
     <table class="table table-hover table-responsive-sm">
         <thead>
         <tr>
             <th></th>
             <th>Title</th>
             <th>Description</th>
-            <th>Sold?</th>
             <th></th>
             <th>
                 <a class="btn btn-primary" href="{% url 'add-item' %}">
@@ -34,15 +30,10 @@
         {% for item in items %}
             <tr>
                 <td>
-                    {% if item.image %}
-                        <img src="/media/{{ item.image }}" alt="{{ item.title }}" height="100" />
-                    {% else %}
-                        <img src="{% static "/assets/images/question.jpg" %}" alt="{{ item.title }}" height="100" />
-                    {% endif %}
+                    <img src="{{ item.image|item_image }}" alt="{{ item.title }}" height="100" />
                 </td>
                 <td>{{ item.title }}</td>
                 <td>{{ item.description | default:"-" }}</td>
-                <td>{{ item.is_sold | yesno | capfirst }}</td>
                 <td>
                     <a class="btn btn-success" href="{% url 'create-auction' pk=item.id %}">
                         Sell

@@ -43,7 +43,10 @@ class CreateIncrementAuctionForm(forms.Form):
 
 class CreateDecrementAuctionForm(forms.Form):
     initial_price = forms.DecimalField(required=True)
-    minimum_increment = forms.DecimalField(required=True)
+    minimum_price = forms.DecimalField(
+        required=True,
+        help_text="Auction will automatically stop once this price is reached.",
+    )
     price_decrement_rate = forms.DecimalField(required=True)
     tick_ms = forms.IntegerField(
         required=True,
@@ -56,3 +59,7 @@ class CreateDecrementAuctionForm(forms.Form):
 class CreateHighestContributionAuctionForm(forms.Form):
     minimum_bid_amount = forms.DecimalField(required=True)
     maximum_price = forms.DecimalField(required=True)
+
+
+class AuctionBidForm(forms.Form):
+    amount = forms.DecimalField(required=True)

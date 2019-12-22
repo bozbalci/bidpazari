@@ -10,8 +10,13 @@ from django.urls import reverse
 from django.utils.http import urlencode
 from django.views.generic.base import TemplateView, View
 
+from bidpazari.core.exceptions import (
+    BiddingNotAllowed,
+    InsufficientBalanceError,
+)
 from bidpazari.core.forms import (
     AddBalanceForm,
+    AuctionBidForm,
     CreateAuctionStep1Form,
     CreateDecrementAuctionForm,
     CreateHighestContributionAuctionForm,
@@ -19,8 +24,12 @@ from bidpazari.core.forms import (
     ItemForm,
     SignupForm,
 )
+from bidpazari.core.helpers import get_auction_or_404
 from bidpazari.core.models import Item, Transaction, UserHasItem
+from bidpazari.core.runtime.auction import AuctionStatus
 from bidpazari.core.runtime.common import runtime_manager
+from bidpazari.core.runtime.exceptions import InvalidAuctionStatus
+from bidpazari.core.templatetags.core.tags import money
 
 
 class WSServerView(View):
@@ -131,7 +140,7 @@ class EditItemView(LoginRequiredMixin, View):
         return render(request, 'core/edit_item.html', {'item': instance, 'form': form})
 
 
-class AddBalanceView(View):
+class AddBalanceView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         return render(request, 'core/add_balance.html', {'form': AddBalanceForm()})
 
@@ -153,7 +162,7 @@ class AddBalanceView(View):
         return render(request, 'core/add_balance.html', {'form': form})
 
 
-class CreateAuctionStep1View(View):
+class CreateAuctionStep1View(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         pk = kwargs['pk']
         item = get_object_or_404(Item, pk=pk)
@@ -184,7 +193,7 @@ class CreateAuctionStep1View(View):
         )
 
 
-class CreateAuctionStep2View(View):
+class CreateAuctionStep2View(LoginRequiredMixin, View):
     FORMS = {
         'increment': CreateIncrementAuctionForm,
         'decrement': CreateDecrementAuctionForm,
@@ -216,13 +225,17 @@ class CreateAuctionStep2View(View):
         form = form_class(request.POST)
 
         if form.is_valid():
-            runtime_manager.create_auction(
+            auction = runtime_manager.create_auction(
                 uhi=uhi,
                 bidding_strategy_identifier=bidding_strategy,
                 **form.cleaned_data,
             )
-            messages.add_message(request, messages.INFO, 'Auction has been created.')
-            return redirect(reverse('dashboard'))
+            messages.add_message(
+                request,
+                messages.INFO,
+                'Created the auction! If the below details look correct to you, hit start and let the games begin!',
+            )
+            return redirect(reverse('auction-details', kwargs={'pk': auction.id}))
 
         return render(
             request,
@@ -231,32 +244,163 @@ class CreateAuctionStep2View(View):
         )
 
 
-class AuctionsView(TemplateView):
+class AuctionsView(LoginRequiredMixin, TemplateView):
     template_name = 'core/auctions.html'
 
     def get_context_data(self, **kwargs):
         auctions = []
         for id_, auction in runtime_manager.auctions.items():
-            auctions.append(auction.to_django())
+            if auction.status != AuctionStatus.CLOSED:
+                auctions.append(auction.to_django())
 
         return {'auctions': auctions}
 
 
-class AuctionDetailsView(TemplateView):
+class AuctionDetailsView(LoginRequiredMixin, TemplateView):
     template_name = 'core/auction_details.html'
 
     def get_context_data(self, **kwargs):
+        auction = get_auction_or_404(kwargs['pk'])
+
+        auction_is_initial = auction.status == AuctionStatus.INITIAL
+        auction_is_open = auction.status == AuctionStatus.OPEN
+        auction_is_closed = auction.status == AuctionStatus.CLOSED
+        user_owns_auction = auction.owner == self.request.user
+        can_start = auction_is_initial and user_owns_auction
+        can_sell = auction_is_open and user_owns_auction
+        can_bid = auction_is_open and not user_owns_auction
+
+        bid_form = AuctionBidForm()
+        if auction.bidding_strategy_identifier == 'decrement':
+            bid_form = None
+
+        return {
+            'auction': auction.to_django(),
+            'auction_is_initial': auction_is_initial,
+            'auction_is_open': auction_is_open,
+            'auction_is_closed': auction_is_closed,
+            'user_owns_auction': user_owns_auction,
+            'can_start': can_start,
+            'can_sell': can_sell,
+            'can_bid': can_bid,
+            'bid_form': bid_form,
+        }
+
+
+class AuctionStartView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
         pk = kwargs['pk']
+        auction = get_auction_or_404(pk)
 
-        try:
-            auction = runtime_manager.auctions[pk]
-        except KeyError:
-            raise Http404(f"Auction with ID {pk} not found.")
+        if auction.owner == request.user:
+            try:
+                auction.start()
+            except InvalidAuctionStatus as e:
+                messages.add_message(request, messages.ERROR, str(e))
+            else:
+                messages.add_message(
+                    request,
+                    messages.INFO,
+                    "Successfully started the auction. Good luck!",
+                )
+        else:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                "You must be the owner of the auction to start it!",
+            )
 
-        return {'auction': auction.to_django()}
+        return redirect(reverse('auction-details', kwargs={'pk': pk}))
 
 
-class TransactionsView(TemplateView):
+class AuctionCancelView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        auction = get_auction_or_404(pk)
+
+        if auction.owner == request.user:
+            try:
+                auction.stop()
+            except InvalidAuctionStatus as e:
+                messages.add_message(request, messages.ERROR, str(e))
+            else:
+                messages.add_message(
+                    request, messages.INFO, "Auction has been cancelled."
+                )
+                return redirect(reverse('dashboard'))
+        else:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                "You must be the owner of the auction to cancel it!",
+            )
+
+        return redirect(reverse('auction-details', kwargs={'pk': pk}))
+
+
+class AuctionSellView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        auction = get_auction_or_404(pk)
+
+        if auction.owner == request.user:
+            try:
+                auction.sell()
+            except InvalidAuctionStatus as e:
+                messages.add_message(request, messages.ERROR, str(e))
+            else:
+                (
+                    winner,
+                    amount,
+                ) = auction.bidding_strategy.get_current_winner_and_amount()
+                if winner:
+                    winner_user_full_name = winner.persistent_user.get_full_name()
+                    amount_money = money(amount)
+                    messages.add_message(
+                        request,
+                        messages.INFO,
+                        f"Auction closed. Sold to {winner_user_full_name} for {amount_money}.",
+                    )
+                else:
+                    messages.add_message(
+                        request, messages.INFO, "Auction closed. Nobody wins."
+                    )
+                return redirect(reverse('dashboard'))
+        else:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                "You must be the owner of the auction to stop it!",
+            )
+
+        return redirect(reverse('auction-details', kwargs={'pk': pk}))
+
+
+class AuctionBidView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        user = request.user.runtime_user
+        pk = kwargs['pk']
+        auction = get_auction_or_404(pk)
+        form = AuctionBidForm(request.POST)
+
+        if form.is_valid():
+            amount = form.cleaned_data['amount']
+            try:
+                auction.bid(user, amount)
+            except (BiddingNotAllowed, InsufficientBalanceError) as e:
+                messages.add_message(request, messages.ERROR, str(e))
+        else:
+            # Decrement bidding uses the same view, but does not have an "amount" field.
+            # This check makes it possible to reuse the same view for decrement bidding.
+            if auction.bidding_strategy_identifier == 'decrement':
+                try:
+                    auction.bid(user)
+                except (BiddingNotAllowed, InsufficientBalanceError) as e:
+                    messages.add_message(request, messages.ERROR, str(e))
+        return redirect(reverse('auction-details', kwargs={'pk': pk}))
+
+
+class TransactionsView(LoginRequiredMixin, TemplateView):
     template_name = 'core/transactions.html'
 
     def get_context_data(self, **kwargs):

@@ -1,5 +1,7 @@
 {% extends "core/__base.html" %}
 
+{% load crispy_forms_tags %}
+
 {% load core.tags %}
 
 {% block title %}
@@ -7,5 +9,131 @@
 {% endblock %}
 
 {% block content %}
-    {{ auction }}
+    <div class="row">
+        <div class="col-8">
+            <h3>
+                {{ auction.item.title }}
+            </h3>
+            <h5 class="text-muted">
+                {{ auction.item.item_type }}
+            </h5>
+            {% if auction_is_initial %}
+                <div class="alert alert-info">
+                    This auction has not yet been started.
+                </div>
+            {% elif auction_is_closed %}
+                <div class="alert alert-danger">
+                    This auction has been closed.
+                </div>
+            {% endif %}
+            <h4 class="my-4">Price: <b>{{ auction.current_price|money }}</b></h4>
+            <dl class="row mt-3">
+                <dt class="col-sm-4">Owner</dt>
+                <dd class="col-sm-8">
+                    {{ auction.owner.get_full_name }}
+                    {% if user_owns_auction %}
+                        (you)
+                    {% endif %}
+                </dd>
+                <dt class="col-sm-4">Current winner</dt>
+                <dd class="col-sm-8">{{ auction.current_winner }}</dd>
+                {% for fname, fvalue in auction.bidding_strategy_params.items %}
+                    <dt class="col-sm-4">{{ fname }}</dt>
+                    <dd class="col-sm-8">{{ fvalue }}</dd>
+                {% endfor %}
+                <dt class="col-sm-4">
+                    Bidding strategy
+                </dt>
+                <dd class="col-sm-8">
+                    {{ auction.bidding_strategy }}
+                    <span data-toggle="tooltip"
+                          data-placement="auto"
+                          title="{{ auction.bidding_strategy_help }}"
+                          style="text-decoration: underline">
+                        (?)
+                    </span>
+                </dd>
+            </dl>
+        </div>
+        <div class="col-4 text-center">
+            <img src="{{ auction.item.image|item_image }}"
+                 alt="{{ auction.item.title }}"
+                 class="img-thumbnail"
+                 height="100"/>
+            <br/>
+            <small>{{ auction.item.description }}</small>
+        </div>
+    </div>
+    {% if can_start %}
+        <div class="row my-3">
+            <div class="col">
+                <form action="{% url 'auction-start' pk=auction.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success w-100">
+                        Start the auction!
+                    </button>
+                </form>
+            </div>
+            <div class="col">
+                <form action="{% url 'auction-cancel' pk=auction.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger w-100">
+                        Cancel
+                    </button>
+                </form>
+            </div>
+        </div>
+    {% elif can_sell %}
+        <div class="row my-3">
+            <div class="col">
+                <form action="{% url 'auction-sell' pk=auction.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="btn btn-{% if auction.winning_amount %}success{% else %}danger{% endif %} w-100">
+                        {% if auction.winning_amount %}
+                            {# winning_amount being truthy means that there is a currently winning candidate. #}
+                            Sell to {{ auction.current_winner }} for {{ auction.winning_amount|money }}
+                        {% else %}
+                            Withdraw the auction
+                        {% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+    {% if can_bid %}
+        <h4 class="mt-5">Bid</h4>
+        <form action="{% url 'auction-bid' pk=auction.id %}" method="post">
+            {% csrf_token %}
+            {% if bid_form %}
+                {{ bid_form|crispy }}
+            {% endif %}
+            <button type="submit" class="btn btn-success">
+                {% if bid_form %}
+                    Bid
+                {% else %}
+                    Buy Now!
+                {% endif %}
+            </button>
+        </form>
+    {% endif %}
+    {% if auction.activity %}
+        <h4 class="mt-5">Activity</h4>
+        <table class="table table-sm">
+            <thead>
+            <tr>
+                <th>Time</th>
+                <th>Event</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for act in auction.activity %}
+                <tr>
+                    <td>{{ act.ts }}</td>
+                    <td>{{ act.msg }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
 {% endblock %}

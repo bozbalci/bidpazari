@@ -25,7 +25,9 @@ SECRET_KEY = "m-vfln5vln2rb07o$9%##s%b)%n76-h@)20ekzcd!lgpe(*$!g"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    # "127.0.0.1"
+]
 
 
 # Application definition
@@ -105,18 +107,18 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
 
-USE_I18N = True
-
-USE_L10N = True
-
+USE_I18N = False
+USE_L10N = False
 USE_TZ = True
 
 
 # bidpazari-specific settings begin here
 AUTH_USER_MODEL = "core.User"
+
+DATE_FORMAT = "M. j, Y - H:i:s"
+DATETIME_FORMAT = "M. j, Y - H:i:s"
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 

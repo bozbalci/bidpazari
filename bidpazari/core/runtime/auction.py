@@ -8,6 +8,10 @@ from bidpazari.core.exceptions import (
     BiddingNotAllowed,
     InsufficientBalanceError,
 )
+from bidpazari.core.helpers import (
+    get_human_readable_activity_message,
+    serialize_user,
+)
 from bidpazari.core.models import Transaction, UserHasItem
 from bidpazari.core.runtime.exceptions import InvalidAuctionStatus
 from bidpazari.core.runtime.strategies import BiddingStrategyFactory
@@ -30,7 +34,8 @@ class Auction:
         self.bidding_strategy.auction = self
         self.status = AuctionStatus.INITIAL
         self.auction_watchers = []
-        self.activity_log = []
+        self.activity_log_v2 = []
+        self.activity_log = []  # TODO remove this
         self.log_event("Auction created")
 
     @property
@@ -67,6 +72,8 @@ class Auction:
         self.stop()
 
     def on_bidding_updated(self, *args, **kwargs):
+        msg = get_human_readable_activity_message({**kwargs})
+        self.activity_log_v2.append({**kwargs, 'ts': timezone.now(), 'msg': msg})
         self.notify_users(*args, **kwargs)
 
     def on_bidding_stopped(self):
@@ -98,7 +105,10 @@ class Auction:
 
         self.on_bidding_updated(
             type="auction_stopped",
-            data={'winner_id': winner and winner.id, 'amount': amount},
+            data={
+                'winner': winner and serialize_user(winner.persistent_user),
+                'amount': amount,
+            },
         )
 
     def bid(self, user: "RuntimeUser", amount=None):
@@ -162,7 +172,7 @@ Bidding Details
             'current_price': self.bidding_strategy.get_current_price(),
             'current_winner': current_winner_line,
             'winning_amount': winning_amount,
-            'bidding_details': self.bidding_strategy.get_auction_report_text(),
+            'bidding_details': self.bidding_strategy.get_tooltip_text(),
         }
 
     def to_django(self):
@@ -185,9 +195,12 @@ Bidding Details
             'item': self.item,
             'owner': self.owner,
             'bidding_strategy': bidding_strategy_name,
-            'bidding_strategy_help': self.bidding_strategy.get_auction_report_text(),
-            'current_price': current_winner,
+            'bidding_strategy_params': self.bidding_strategy.get_human_readable_parameters(),
+            'bidding_strategy_help': self.bidding_strategy.get_tooltip_text(),
+            'current_winner': current_winner,
+            'current_price': self.bidding_strategy.get_current_price(),
             'winning_amount': winning_amount,
+            'activity': list(reversed(self.activity_log_v2)),
         }
 
     def register_user_to_updates(self, callback_method):

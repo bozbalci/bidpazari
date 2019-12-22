@@ -1,5 +1,7 @@
+{% load core.tags %}
+
 <div class="card" style="width: 16rem;">
-    <img src="/media/{{ item.image }}" alt="{{ item.title }}" class="card-img-top" />
+    <img src="{{ item.image|item_image }}" alt="{{ item.title }}" class="card-img-top" />
     <div class="card-body">
         <h5 class="card-title">
             {{ item.title }}

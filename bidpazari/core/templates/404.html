@@ -1,0 +1,11 @@
+{% extends "core/__base.html" %}
+
+{% block title %}
+    Not Found
+{% endblock %}
+
+{% block content %}
+    <h3>Not Found</h3>
+    <p>The resource you've requested does not exist.</p>
+    <a href="{% url 'index' %}">Back to Bidpazari</a>
+{% endblock %}

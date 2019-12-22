@@ -23,4 +23,4 @@ class TransactionAdmin(admin.ModelAdmin):
 
 @admin.register(UserHasItem)
 class UserHasItemAdmin(admin.ModelAdmin):
-    list_display = ('user', 'item', 'is_sold')
+    list_display = ('id', 'user', 'item', 'is_sold')

@@ -8,7 +8,9 @@ from bidpazari.core.exceptions import (
     BiddingNotAllowed,
     InsufficientBalanceError,
 )
+from bidpazari.core.helpers import serialize_user
 from bidpazari.core.models import Transaction
+from bidpazari.core.templatetags.core.tags import money
 
 
 class BaseBiddingStrategy:
@@ -34,7 +36,8 @@ class BaseBiddingStrategy:
             f"{bidder.persistent_user.get_full_name()} made a bid: {amount}"
         )
         self.auction.on_bidding_updated(
-            type="bid_received", data={'bidder_id': bidder.id, 'amount': amount}
+            type="bid_received",
+            data={'bidder': serialize_user(bidder.persistent_user), 'amount': amount},
         )
         self.bidders.add(bidder)
         self.bidding_history.append((bidder, amount))
@@ -45,7 +48,10 @@ class BaseBiddingStrategy:
     def get_current_price(self):
         raise NotImplementedError
 
-    def get_auction_report_text(self):
+    def get_tooltip_text(self):
+        raise NotImplementedError
+
+    def get_human_readable_parameters(self):
         raise NotImplementedError
 
 
@@ -54,6 +60,7 @@ class IncrementBiddingStrategy(BaseBiddingStrategy):
         self, initial_price, minimum_increment=Decimal(1.0), maximum_price=None
     ):
         super().__init__()
+        self.initial_price = initial_price
         self.minimum_increment = minimum_increment
         self.maximum_price = maximum_price
         self.highest_bid = initial_price
@@ -90,13 +97,20 @@ class IncrementBiddingStrategy(BaseBiddingStrategy):
         return None, None
 
     def get_current_price(self):
-        return self.highest_bid
+        return self.highest_bid + self.minimum_increment
 
-    def get_auction_report_text(self):
+    def get_tooltip_text(self):
         return (
-            f"Maximum Price: {self.maximum_price}.\n"
-            f"Auction will stop when this bid is reached.\n"
+            "Bids are gradually incremented by the minimum increment. "
+            "Auction will stop when the maximum price is reached."
         )
+
+    def get_human_readable_parameters(self):
+        return {
+            'Initial price': money(self.initial_price),
+            'Minimum increment': money(self.minimum_increment),
+            'Maximum price': money(self.maximum_price),
+        }
 
 
 class DecrementBiddingStrategy(BaseBiddingStrategy):
@@ -138,7 +152,7 @@ class DecrementBiddingStrategy(BaseBiddingStrategy):
             )
             self.decrementing_thread = Timer(self.tick_s, self._decrement_price)
             self.decrementing_thread.start()
-        else:
+        elif not self.auction.status == AuctionStatus.CLOSED:
             self.stop()
 
     def start(self):
@@ -158,12 +172,19 @@ class DecrementBiddingStrategy(BaseBiddingStrategy):
     def get_current_price(self):
         return self.current_price
 
-    def get_auction_report_text(self):
+    def get_tooltip_text(self):
         return (
-            f"Minimum Price: {self.minimum_price}.\n"
-            f"Auction will stop when this bid is reached.\n"
-            f"The first bidder to buy wins.\n"
+            "The price gradually decreases over time. First bidder wins. "
+            "Auction is closed when the minimum price is reached."
         )
+
+    def get_human_readable_parameters(self):
+        price_decrement_rate_money = money(self.price_decrement_rate)
+        return {
+            'Initial price': money(self.initial_price),
+            'Minimum price': money(self.minimum_price),
+            'Price decrement rate': f'{price_decrement_rate_money} every {self.tick_s} seconds',
+        }
 
 
 class HighestContributionBiddingStrategy(BaseBiddingStrategy):
@@ -228,12 +249,18 @@ class HighestContributionBiddingStrategy(BaseBiddingStrategy):
     def get_current_price(self):
         return self.current_price
 
-    def get_auction_report_text(self):
+    def get_tooltip_text(self):
         return (
-            f"Maximum Price: {self.maximum_price}.\n"
-            f"Auction will stop when this bid is reached.\n"
-            f"The bidder with the highest contribution wins.\n"
+            "Auction is open until the target price is reached. "
+            "The bidder with the highest contribution wins. "
+            "The pooled bids are not returned to the losing bidders."
         )
+
+    def get_human_readable_parameters(self):
+        return {
+            'Minimum bid amount': money(self.minimum_bid_amount),
+            'Maximum price': money(self.maximum_price),
+        }
 
 
 class BiddingStrategyFactory:
