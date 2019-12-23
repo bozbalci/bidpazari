@@ -44,7 +44,6 @@ in order to start the WebSocket thread within the Django server.
 ## TODO
 
 - [ ] Automate the WebSocket server initialization
-- [ ] Different alert colors for different Django messages
 - [ ] Refactor the strategy backend (bidding history shenanigans)
 - [ ] Redesign the auctions page to be prettier
 - [ ] Add an "Account" page for password changes, verification, profile settings, etc.

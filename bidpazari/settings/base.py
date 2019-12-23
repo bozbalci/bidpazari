@@ -1,5 +1,6 @@
 import os
 
+from django.contrib.messages import constants as message_constants
 from django.urls import reverse_lazy
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -24,8 +25,7 @@ INSTALLED_APPS = [
     # Third-party apps
     'webpack_loader',
     'argonauts',
-    'crispy_forms',
-    # Bidpazari
+    'crispy_forms',  # Bidpazari
     "bidpazari.core.apps.CoreConfig",
 ]
 
@@ -60,7 +60,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "bidpazari.wsgi.application"
 
-
 # Database
 DATABASES = {
     "default": {
@@ -68,7 +67,6 @@ DATABASES = {
         "NAME": os.path.join(BASE_DIR, "../db.sqlite3"),
     }
 }
-
 
 # Authentication
 AUTH_USER_MODEL = "core.User"
@@ -83,6 +81,14 @@ AUTH_PASSWORD_VALIDATORS = [
 LOGIN_URL = reverse_lazy('login')
 LOGIN_REDIRECT_URL = reverse_lazy('dashboard')
 
+# Messaging
+MESSAGE_TAGS = {
+    message_constants.DEBUG: 'secondary',
+    message_constants.INFO: 'info',
+    message_constants.SUCCESS: 'success',
+    message_constants.WARNING: 'warning',
+    message_constants.ERROR: 'danger',
+}
 
 # i18n, l10n, timezones, dates, etc.
 LANGUAGE_CODE = "en-us"
