@@ -25,7 +25,8 @@ INSTALLED_APPS = [
     # Third-party apps
     'webpack_loader',
     'argonauts',
-    'crispy_forms',  # Bidpazari
+    'crispy_forms',
+    # Bidpazari
     "bidpazari.core.apps.CoreConfig",
 ]
 
