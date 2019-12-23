@@ -8,9 +8,8 @@ module.exports = {
   entry: ['entry/main'],
 
   output: {
-    path: path.resolve('./static/build/'),
-    // publicPath: '/static/build/',
-    publicPath: 'http://localhost:3000/static/build/',
+    path: path.resolve(__dirname, '../../build/bidpazari/js/webpack'),
+    publicPath: '/staticx/bidpazari/js/webpack/',
     filename: '[name]-[hash].js',
     chunkFilename: '[name].[chunkhash].js',
   },
@@ -18,7 +17,9 @@ module.exports = {
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
-    new BundleTracker({filename: './webpack-stats.json'}),
+    new BundleTracker({
+      filename: 'build/bidpazari/js/webpack/webpack-stats.json',
+    }),
   ],
 
   module: {
@@ -91,9 +92,7 @@ module.exports = {
   },
 
   resolve: {
-    modules: [path.resolve(__dirname, './js'), 'node_modules'],
+    modules: [path.resolve(__dirname, '../../src/js'), 'node_modules'],
     extensions: ['.js', '.jsx'],
   },
-
-  mode: 'development',
 };

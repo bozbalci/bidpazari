@@ -4,9 +4,10 @@
   "description": "CENG445 Term Project",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build-dev": "webpack --config webpack.config.js --progress --color --mode=development",
-    "start": "node webpack-dev-server.js"
+    "build-dev": "webpack --config webpack/config/dev.js --progress --color",
+    "build-prod": "webpack --config webpack/config/prod.js --progress --color",
+    "start": "node webpack/dev-server.js",
+    "prettier-check": "prettier --check"
   },
   "repository": {
     "type": "git",
