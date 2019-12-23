@@ -1,13 +1,11 @@
-import React, {Fragment} from 'react';
+import React from 'react';
 import {observer} from 'mobx-react';
 
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
-import Form from 'react-bootstrap/Form';
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
 import Row from 'react-bootstrap/Row';
 
 import renderReact from '../utils/render-react';
@@ -30,32 +28,34 @@ class WSClient extends React.Component {
   render() {
     return (
       <>
-        <Navbar bg="success" variant="dark">
-          <Navbar.Brand>Bidpazari WebSocket Client</Navbar.Brand>
-          <Nav className="mr-auto"></Nav>
-          <Form inline>
-            {this.store.commandResults.length > 0 ? (
-              <Button
-                onClick={this.store.clearCommandResults}
-                variant="outline-light"
-                className="mx-1"
-              >
-                Clear commands
-              </Button>
-            ) : null}
-            {this.store.feed.length > 0 ? (
-              <Button onClick={this.store.clearFeed} variant="outline-light" className="mx-1">
-                Clear notifications
-              </Button>
-            ) : null}
-          </Form>
-        </Navbar>
         <Container fluid>
           <Row className="mt-3">
-            <Col>
-              <p>
+            <Col sm={6}>
+              <p className="my-1">
                 Make queries using <code>wsClient</code> in the developer console.
               </p>
+            </Col>
+            <Col sm={6} className="text-right">
+              <ButtonGroup>
+                <Button
+                  onClick={this.store.clearCommandResults}
+                  variant="secondary"
+                  disabled={this.store.commandResults.length === 0}
+                >
+                  Clear commands
+                </Button>
+                <Button
+                  onClick={this.store.clearFeed}
+                  variant="secondary"
+                  disabled={this.store.feed.length === 0}
+                >
+                  Clear notifications
+                </Button>
+              </ButtonGroup>
+            </Col>
+          </Row>
+          <Row className="mt-3">
+            <Col>
               {this.store.connected ? (
                 this.store.loggedIn ? (
                   <Alert variant="success">You have successfully logged into the Pazar.</Alert>
@@ -70,7 +70,7 @@ class WSClient extends React.Component {
               )}
             </Col>
           </Row>
-          <Row>
+          <Row className="mt-2">
             <Col style={{borderRight: '1px solid #DDD'}}>
               <h2 className="text-center">Commands</h2>
               {this.store.commandResults.map((item, index) => (

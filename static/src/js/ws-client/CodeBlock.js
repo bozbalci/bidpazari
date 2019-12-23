@@ -1,6 +1,6 @@
 import React from 'react';
 
-import styles from './CodeBlock.less';
+import styles from './CodeBlock.scss';
 
 export default function CodeBlock({color, children}) {
   return (

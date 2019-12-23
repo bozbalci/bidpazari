@@ -33,6 +33,7 @@ INSTALLED_APPS = [
 # Order of these classes is important!
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -108,13 +109,20 @@ LOGGING = {
 
 # Static files (JS, CSS, assets) and media (user-uploaded images)
 STATIC_URL = "/staticx/"
+
+STATIC_ROOT = os.path.join(BASE_DIR, '../staticfiles')
+
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "../static/assets/"),
     os.path.join(BASE_DIR, "../static/build/"),
 ]
+
 STATIC_BUILD_DIR = os.path.join(BASE_DIR, "../static/build/")
-print(STATIC_BUILD_DIR)
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 MEDIA_URL = '/media/'
+
 MEDIA_ROOT = os.path.join(BASE_DIR, "../media")
 
 # Webpack

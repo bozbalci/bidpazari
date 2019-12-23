@@ -1,5 +1,7 @@
 var path = require('path');
 var webpack = require('webpack');
+var MiniCssExtractPlugin = require('mini-css-extract-plugin');
+var BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 var BundleTracker = require('webpack-bundle-tracker');
 
 module.exports = {
@@ -15,8 +17,15 @@ module.exports = {
   },
 
   plugins: [
+    // Uncomment the following line to analyze bundles.
+    // new BundleAnalyzerPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
+    new MiniCssExtractPlugin({
+      chunkFilename: '[name].[contenthash].css',
+      filename: '[name].[contenthash].css',
+      ignoreOrder: true,
+    }),
     new BundleTracker({
       filename: 'build/bidpazari/js/webpack/webpack-stats.json',
     }),
@@ -29,22 +38,52 @@ module.exports = {
         use: ['style-loader', 'css-loader'],
       },
       {
-        test: /\.less$/,
+        test: /\.global\.scss$/,
         use: [
           {
-            loader: 'style-loader',
+            loader: MiniCssExtractPlugin.loader,
+          },
+          {
+            loader: 'css-loader',
+          },
+          {
+            loader: 'postcss-loader',
+            options: {
+              plugins: function() {
+                return [require('autoprefixer')];
+              },
+            },
+          },
+          {
+            loader: 'sass-loader',
+          },
+        ],
+      },
+      {
+        test: /\.(scss)$/,
+        exclude: [/\.global\.scss$/],
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
           },
           {
             loader: 'css-loader',
             options: {
-              sourceMap: true,
               modules: {
                 localIdentName: '[name]__[local]___[hash:base64:5]',
               },
             },
           },
           {
-            loader: 'less-loader',
+            loader: 'postcss-loader',
+            options: {
+              plugins: function() {
+                return [require('autoprefixer')];
+              },
+            },
+          },
+          {
+            loader: 'sass-loader',
           },
         ],
       },
@@ -92,7 +131,11 @@ module.exports = {
   },
 
   resolve: {
-    modules: [path.resolve(__dirname, '../../src/js'), 'node_modules'],
-    extensions: ['.js', '.jsx'],
+    modules: [
+      path.resolve(__dirname, '../../src/js'),
+      path.resolve(__dirname, '../../src/scss'),
+      'node_modules',
+    ],
+    extensions: ['.js', '.jsx', '.scss'],
   },
 };
