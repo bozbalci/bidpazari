@@ -117,7 +117,7 @@ class AddItemView(LoginRequiredMixin, View):
             UserHasItem.objects.create(user=request.user, item=instance)
             messages.add_message(
                 request,
-                messages.INFO,
+                messages.SUCCESS,
                 f'Successfully added {instance.title} to your items.',
             )
             return redirect(reverse('dashboard'))
@@ -144,7 +144,7 @@ class EditItemView(LoginRequiredMixin, View):
         if form.is_valid():
             instance = form.save()
             messages.add_message(
-                request, messages.INFO, f'Successfully edited {instance.title}.'
+                request, messages.SUCCESS, f'Successfully edited {instance.title}.'
             )
             return redirect(reverse('dashboard'))
 
@@ -166,7 +166,7 @@ class AddBalanceView(LoginRequiredMixin, View):
                 message = f'Added ${amount} to your balance.'
             else:
                 message = f'Removed ${-amount} from your balance.'
-            messages.add_message(request, messages.INFO, message)
+            messages.add_message(request, messages.SUCCESS, message)
 
             return redirect(reverse('dashboard'))
 
@@ -247,7 +247,7 @@ class CreateAuctionStep2View(LoginRequiredMixin, View):
             else:
                 messages.add_message(
                     request,
-                    messages.INFO,
+                    messages.SUCCESS,
                     'Created the auction! If the below details look correct to you, hit start and let the games begin!',
                 )
                 return redirect(reverse('auction-details', kwargs={'pk': auction.id}))
@@ -314,9 +314,7 @@ class AuctionStartView(LoginRequiredMixin, View):
                 messages.add_message(request, messages.ERROR, str(e))
             else:
                 messages.add_message(
-                    request,
-                    messages.INFO,
-                    "Successfully started the auction. Good luck!",
+                    request, messages.SUCCESS, "The auction has been started!",
                 )
         else:
             messages.add_message(
@@ -373,12 +371,12 @@ class AuctionSellView(LoginRequiredMixin, View):
                     amount_money = money(amount)
                     messages.add_message(
                         request,
-                        messages.INFO,
+                        messages.SUCCESS,
                         f"Auction closed. Sold to {winner_user_full_name} for {amount_money}.",
                     )
                 else:
                     messages.add_message(
-                        request, messages.INFO, "Auction closed. Nobody wins."
+                        request, messages.INFO, "Auction closed. Nobody won."
                     )
                 return redirect(reverse('dashboard'))
         else:
