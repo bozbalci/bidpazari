@@ -43,12 +43,23 @@ in order to start the WebSocket thread within the Django server.
 
 ## TODO
 
+### Backend
+- [ ] Refactor strategies
+
+### Frontend
+- [ ] Write a custom theme
+- [ ] Redesign auctions page
+- [ ] Account management
+
+### Deployment
 - [ ] Automate the WebSocket server initialization
-- [ ] Refactor the strategy backend (bidding history shenanigans)
-- [ ] Redesign the auctions page to be prettier
-- [ ] Add an "Account" page for password changes, verification, profile settings, etc.
-- [ ] Create deployment scripts
-- [ ] Remove tests or write new tests
+- [ ] Create a deployment pipeline
+
+### Quality
+- [ ] ESLint
+- [ ] Stylelint
+- [ ] Django tests
+- [ ] JS tests
     
 Happy hacking!
 
