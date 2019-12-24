@@ -14,26 +14,52 @@ Activate the virtualenv, and install the dependencies (requires Poetry):
 
     $ source ~/.virtualenvs/bidpazari/bin/activate
     (bidpazari) $ poetry install
-    $ npm install
+    $ cd static; npm install
 
-Start the project by using the following commands:
+## Development
 
-    # Start the webpack dev server (optional, required for the WebSocket client)
-    $ npm start
-    # Start the Django development server.
-    $ ./manage.py runserver
+If you are developing JavaScript, you are probably interested in running
+webpack-dev-server. Run it like below:
+
+    DJANGO_SETTINGS_MODULE=bidpazari.settings.dev ./manage.py webpackdevserver
+
+If you are not interested in developing JavaScript, you still need to generate
+a Webpack build for some of the website to work. For this, you should run
+
+    DJANGO_SETTINGS_MODULE=bidpazari.settings.dev ./manage.py buildfrontend
+
+If you would like to generate a production build, use `bidpazari.settings.prod`.
+
+After running webpack-dev-server or creating a static build, run the Django server:
+
+    DJANGO_SETTINGS_MODULE=bidpazari.settings.dev ./manage.py runserver
+
+Initially, the WebSocket server will not be running. In order to run it,
+visit
+
+    http://localhost:8000/ws/server/
+
+in order to start the WebSocket thread within the Django server.
 
 ## TODO
 
-- [ ] Different alert colors for different Django messages
-- [ ] Refactor the strategy backend (bidding history shenanigans)
-- [ ] Create production configs for Webpack and Django
-- [ ] Redesign the auctions page to be prettier
-- [ ] Add an "Account" page for password changes, verification, profile settings, etc.
-- [ ] Move js code under static/
-- [ ] Refactor /media/ usages in templates
-- [ ] Create deployment scripts
-- [ ] Remove tests or write new tests
+### Backend
+- [ ] Refactor strategies
+
+### Frontend
+- [ ] Write a custom theme
+- [ ] Redesign auctions page
+- [ ] Account management
+
+### Deployment
+- [ ] Automate the WebSocket server initialization
+- [ ] Create a deployment pipeline
+
+### Quality
+- [ ] ESLint
+- [ ] Stylelint
+- [ ] Django tests
+- [ ] JS tests
     
 Happy hacking!
 

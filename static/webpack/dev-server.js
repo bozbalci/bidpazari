@@ -1,8 +1,8 @@
 const webpack = require('webpack');
-const WebpackDevServer = require('webpack-dev-server');
-const config = require('./webpack.config');
+const DevServer = require('webpack-dev-server');
+const config = require('./config/dev-with-webpack-dev-server');
 
-new WebpackDevServer(webpack(config), {
+new DevServer(webpack(config), {
   publicPath: config.output.publicPath,
   hot: true,
   inline: true,

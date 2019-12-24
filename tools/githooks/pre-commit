@@ -5,8 +5,6 @@ GREEN="\033[0m[\033[0;92mPASSED\033[0m]"
 
 wrap_linter() {
     local start_time=`date +%s`
-    # Run the command passed in via "$@". Changing the encoding in LANG is necessary because the
-    # default system encoding (ascii) is causing isort to fail on some files.
     echo LANG=en_US.UTF-8 "$@" && LANG=en_US.UTF-8 "$@"
     local result=$?
     local end_time=`date +%s`
@@ -28,21 +26,36 @@ for file in "${changed_files[@]}"; do
         continue
     fi
 
+    relative_to_static=`echo "$file" | sed 's/^static\///g'`
+
     if [[ "$file" == *.py ]]; then
         python_files=("${python_files[@]}" "$file")
     fi
 
     if [[ "$file" == *.js ]]; then
+        file="$relative_to_static"
         javascript_files=("${javascript_files[@]}" "$file")
     fi
 done
 
-echo "Linting Python with isort... "
-echo 'To autofix any errors, use isort without `-c`.'
-wrap_linter isort -c "${python_files[@]}"
 
-echo "Linting Python with black..."
-wrap_linter black --check "${python_files[@]}"
+if [ ${#python_files[@]} -eq 0 ]; then
+    echo "Skipping Python linters..."
+else
+    echo "Linting Python with isort... "
+    echo 'To autofix any errors, use isort without `-c`.'
+    wrap_linter isort -c "${python_files[@]}"
 
-echo "Linting JavaScript with Prettier..."
-wrap_linter prettier --check "${javascript_files[@]}"
+    echo "Linting Python with black..."
+    wrap_linter black --check "${python_files[@]}"
+fi
+
+if [ ${#javascript_files[@]} -eq 0 ]; then
+    echo "Skipping JavaScript linters..."
+else
+    echo "Linting JavaScript with Prettier..."
+    pushd .
+    cd static
+    wrap_linter npm run prettier-check "${javascript_files[@]}" --silent
+    popd
+fi

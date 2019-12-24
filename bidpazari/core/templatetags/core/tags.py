@@ -2,6 +2,7 @@ import re
 from decimal import Decimal
 
 from django import template
+from django.conf import settings
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.template.defaultfilters import floatformat
 from django.urls import NoReverseMatch, reverse
@@ -52,6 +53,8 @@ def humanize_bidding_strategy(value):
 
 @register.filter(name='item_image')
 def item_image(value):
+    static_url = settings.STATIC_URL
+    media_url = settings.MEDIA_URL
     if not value:
-        return "/static/assets/images/question.jpg"
-    return f"/media/{value}"
+        return f"{static_url}images/question.jpg"
+    return f"{media_url}{value}"

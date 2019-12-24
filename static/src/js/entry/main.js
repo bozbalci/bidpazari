@@ -1,6 +1,11 @@
 import React from 'react';
 
-import 'bootstrap/dist/css/bootstrap.min.css';
+// Load jQuery and Popper.js
+import 'bootstrap/dist/js/bootstrap.min';
+
+import $ from 'jquery';
+
+import 'main.global.scss';
 
 Array.from(document.querySelectorAll('.app-loader')).forEach(appContainer => {
   const appId = appContainer.dataset.appId,
@@ -13,3 +18,5 @@ Array.from(document.querySelectorAll('.app-loader')).forEach(appContainer => {
     appModule.default(appContainer, appProps);
   });
 });
+
+$('[data-toggle="tooltip"]').tooltip();
