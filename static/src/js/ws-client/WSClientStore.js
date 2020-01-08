@@ -17,7 +17,7 @@ export default class WSClientStore {
 
   help() {
     const warningTitleCSS =
-      'color:red; font-size:36px; font-weight: bold; -webkit-text-stroke: 1px black;';
+      'color: red; font-size: 36px; font-weight: bold; -webkit-text-stroke: 1px black;';
     const warningDescCSS = 'font-size: 14px;';
 
     console.log('%cBidpazari WebSocket Client', warningTitleCSS);
