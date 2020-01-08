@@ -28,7 +28,7 @@ User Management     Items and Transactions     Auctions              UI
 ===============     ======================     ========              ==
 createUser          addBalance                 createAuction         clearCommandResults
 login               listItems                  startAuction          clearFeed
-changePassword      viewTransactionHistory     bid
+changePassword      viewTransactionHistory     bid                   help
 resetPassword                                  sell
 verify                                         watchAuction
 logout                                         viewAuctionReport
