@@ -7,6 +7,7 @@ import $ from 'jquery';
 
 import 'main.global.scss';
 
+// Mount React components
 Array.from(document.querySelectorAll('.app-loader')).forEach(appContainer => {
   const appId = appContainer.dataset.appId,
     appPropsString = appContainer.dataset.appProps,
@@ -19,4 +20,5 @@ Array.from(document.querySelectorAll('.app-loader')).forEach(appContainer => {
   });
 });
 
+// Enable Bootstrap tooltips for Django templates
 $('[data-toggle="tooltip"]').tooltip();
