@@ -1,5 +1,6 @@
 import random
 import string
+import uuid
 from decimal import Decimal
 
 from django.contrib.auth.models import AbstractUser
@@ -33,6 +34,7 @@ class User(TimeStampedModel, AbstractUser):
     verification_number = models.CharField(
         max_length=16, default=generate_verification_number, blank=True
     )
+    auth_token = models.UUIDField(default=uuid.uuid4, unique=True)
 
     @property
     def runtime_user(self):
@@ -52,6 +54,9 @@ class User(TimeStampedModel, AbstractUser):
             )
         else:
             raise UserVerificationError("Invalid verification number.")
+
+    def check_auth_token(self, auth_token: str) -> bool:
+        return auth_token == str(self.auth_token)
 
     def change_password(self, new_password, old_password=None):
         forgotten = old_password is None

@@ -13,6 +13,10 @@
 
     {% render_bundle 'main' 'css' %}
 
+    {% block jshead %}
+        {% include "core/_js_head.html" %}
+    {% endblock %}
+
     <title>Bidpazari - {% block title %}{% endblock %}</title>
 </head>
 <body>

@@ -44,6 +44,7 @@
     "mobx-react": "^6.1.4",
     "postcss-loader": "^3.0.0",
     "prettier": "^1.19.1",
+    "prop-types": "^15.7.2",
     "sass": "^1.24.0",
     "sass-loader": "^8.0.0",
     "style-loader": "^1.0.1",

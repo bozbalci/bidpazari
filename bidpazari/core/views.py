@@ -290,6 +290,7 @@ class AuctionDetailsView(LoginRequiredMixin, TemplateView):
 
         return {
             'auction': auction.to_django(),
+            'auction_live_updates_args': {'auctionId': auction.id,},
             'auction_is_initial': auction_is_initial,
             'auction_is_open': auction_is_open,
             'auction_is_closed': auction_is_closed,

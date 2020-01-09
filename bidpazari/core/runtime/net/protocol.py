@@ -90,6 +90,28 @@ async def login(context: CommandContext, username: str, password: str):
     return {"user": {"id": runtime_user.id}}
 
 
+@command("login_with_auth_token")
+async def login_with_auth_token(
+    context: CommandContext, username: str, auth_token: str
+):
+    if context.runtime_user:
+        raise CommandFailed("You are already logged in!")
+
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        raise CommandFailed("Incorrect username or token.")
+
+    if user.check_auth_token(auth_token):
+        runtime_user = RuntimeUser.from_persistent_user(user)
+    else:
+        raise CommandFailed("Incorrect username or token.")
+
+    runtime_user.connect()
+    context.runtime_user = runtime_user
+    return {"user": {"id": runtime_user.id}}
+
+
 @command("change_password")
 @login_required
 async def change_password(
@@ -285,7 +307,11 @@ async def watch_auction(context: CommandContext, auction_id: int):
 
     @push_notification(context.websocket)
     def notify(**kwargs):
-        return {'type': kwargs.get('type'), 'data': kwargs.get('data')}
+        return {
+            'domain': 'auction',
+            'type': kwargs.get('type'),
+            'data': kwargs.get('data'),
+        }
 
     auction.register_user_to_updates(notify)
     return {}

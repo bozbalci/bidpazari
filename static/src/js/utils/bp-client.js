@@ -1,61 +1,82 @@
 import {action, observable, runInAction} from 'mobx';
 import autobind from 'autobind-decorator';
 
-const colors = {
-  critical: '#dc3545',
-  success: '#28a745',
-  warning: '#ffc107',
-  default: '#6c757d',
-};
-
-export default class WSClientStore {
+export default class Client {
   @observable connected = false;
   @observable loggedIn = false;
 
   @observable commandResults = [];
   @observable feed = [];
 
-  help() {
-    const warningTitleCSS =
-      'color: red; font-size: 36px; font-weight: bold; -webkit-text-stroke: 1px black;';
-    const warningDescCSS = 'font-size: 14px;';
+  socket;
 
-    console.log('%cBidpazari WebSocket Client', warningTitleCSS);
-    console.log(
-      `%cUse wsClient to run the following commands. Use \`help\` command to view this.
+  on = {
+    // Generic handlers
+    open: null,
+    close: null,
+    // Command handlers
+    login: null,
+    watch_auction: null,
+    // Notifications
+    notification_auction: null,
+  };
 
-User Management     Items and Transactions     Auctions              UI
-===============     ======================     ========              ==
-createUser          addBalance                 createAuction         clearCommandResults
-login               listItems                  startAuction          clearFeed
-changePassword      viewTransactionHistory     bid                   help
-resetPassword                                  sell
-verify                                         watchAuction
-logout                                         viewAuctionReport
-loginToken                                     viewAuctionHistory`,
-      warningDescCSS,
-    );
+  handleEvent(eventType, data) {
+    const handler = this.on[eventType];
+
+    if (handler) {
+      const boundHandler = handler.bind(this);
+      boundHandler(data);
+    }
   }
 
-  constructor() {
-    // Set up the WebSocket
+  connect() {
     this.socket = new WebSocket('ws://localhost:8765');
     this.socket.onopen = this.onOpen;
     this.socket.onclose = this.onClose;
     this.socket.onmessage = this.onMessage;
   }
 
+  /// GENERIC HANDLERS =============================================================================
+
   @autobind
   @action
   onOpen() {
     this.connected = true;
+
+    this.handleEvent('open', {});
   }
 
   @autobind
   @action
   onClose() {
     this.connected = false;
+
+    this.handleEvent('close', {});
   }
+
+  @autobind
+  onMessage(event) {
+    const data = JSON.parse(event.data);
+
+    switch (data.event) {
+      case 'login':
+      case 'login_with_auth_token':
+        this.onLogin(data);
+        break;
+      case 'logout':
+        this.onLogout(data);
+        break;
+      case 'notification':
+        this.onNotification(data);
+        break;
+      default:
+        this.handleEvent(data.event, data);
+        return;
+    }
+  }
+
+  /// COMMANDS =====================================================================================
 
   _sendCommand(command, params) {
     const cmdData = JSON.stringify({
@@ -64,47 +85,6 @@ loginToken                                     viewAuctionHistory`,
     });
 
     this.socket.send(cmdData);
-  }
-
-  @autobind
-  onMessage(event) {
-    const formattedData = event.data;
-    const data = JSON.parse(formattedData);
-
-    switch (data.event) {
-      case 'login':
-        this.onLogin(data);
-        break;
-      case 'logout':
-        this.onLogout(data);
-        break;
-      case 'notification':
-        this.onNotification(formattedData, data);
-        return;
-    }
-
-    let color;
-    switch (data.code) {
-      case 0:
-        color = colors.success;
-        break;
-      case 1:
-        color = colors.warning;
-        break;
-      case 2:
-        color = colors.critical;
-        break;
-      default:
-        color = colors.default;
-        break;
-    }
-
-    runInAction(() => {
-      this.commandResults.unshift({
-        data: formattedData,
-        color,
-      });
-    });
   }
 
   createUser(username, password, email, first_name, last_name) {
@@ -222,17 +202,7 @@ loginToken                                     viewAuctionHistory`,
     });
   }
 
-  @autobind
-  @action
-  clearCommandResults() {
-    this.commandResults = [];
-  }
-
-  @autobind
-  @action
-  clearFeed() {
-    this.feed = [];
-  }
+  /// EVENT HANDLERS ===============================================================================
 
   @action
   onLogin(data) {
@@ -240,6 +210,8 @@ loginToken                                     viewAuctionHistory`,
       // User is successfully logged in.
       this.loggedIn = true;
     }
+
+    this.handleEvent('login', data);
   }
 
   @action
@@ -247,13 +219,14 @@ loginToken                                     viewAuctionHistory`,
     if (data.code === 0) {
       this.loggedIn = false;
     }
+
+    this.handleEvent('logout', data);
   }
 
   @action
-  onNotification(formattedData, data) {
-    this.feed.unshift({
-      formattedData,
-      data,
-    });
+  onNotification(data) {
+    if (data.result.domain === 'auction') {
+      this.handleEvent('notification_auction', data);
+    }
   }
 }

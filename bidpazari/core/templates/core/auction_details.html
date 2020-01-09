@@ -1,5 +1,6 @@
 {% extends "core/__base.html" %}
 
+{% load argonauts %}
 {% load crispy_forms_tags %}
 
 {% load core.tags %}
@@ -136,4 +137,10 @@
             </tbody>
         </table>
     {% endif %}
+    <div
+        class="app-loader app-auction-live-updates"
+        data-app-id="auction-live-updates"
+        data-app-props="{{ auction_live_updates_args|json|force_escape }}"
+    >
+    </div>
 {% endblock %}
