@@ -2,9 +2,15 @@ import json
 
 from django.core import serializers
 from django.http import Http404
+from django.urls import reverse
 
 from bidpazari.core.models import User
 from bidpazari.core.templatetags.core.tags import money
+
+
+def construct_verification_url(user: User):
+    base_url = reverse('account-verify')
+    return f'{base_url}?token={user.auth_token}&v={user.verification_number}'
 
 
 def get_auction_or_404(pk):

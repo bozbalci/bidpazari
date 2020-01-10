@@ -1,6 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from bidpazari.core.helpers import construct_verification_url
 from bidpazari.core.models import Transaction, User
 from bidpazari.core.runtime.common import runtime_manager
 
@@ -27,9 +28,11 @@ def send_registration_email(sender, instance: User, **kwargs):
     if not kwargs["created"]:
         return
 
+    url = construct_verification_url(user=instance)
+
     instance.email_user(
         subject="Welcome to Bidpazari!",
         message=f"Hello {instance.get_full_name()} and welcome to Bidpazari!\n\n"
-        f"Please complete your registration by using this"
-        f" verification number: {instance.verification_number}",
+        f"Click the following link to complete your registration:\n\n"
+        f"{url}",
     )

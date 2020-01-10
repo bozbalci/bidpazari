@@ -1,4 +1,3 @@
-from django.contrib.auth.views import LoginView
 from django.urls import include, path
 
 from bidpazari.core import views
@@ -6,17 +5,24 @@ from bidpazari.core import views
 legacy_urlpatterns = [
     path('', views.IndexView.as_view(), name='index'),
     path('signup/', views.SignupView.as_view(), name='signup',),
-    path('login/', LoginView.as_view(template_name='core/login.html'), name='login',),
+    path(
+        'login/',
+        views.LoginView.as_view(template_name='core/login.html'),
+        name='login',
+    ),
     path('logout/', views.LogoutView.as_view(), name='logout'),
     path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
     path('account/', views.AccountDetailsView.as_view(), name='account-details',),
     path(
-        'account/reset-password',
+        'account/verify/', views.UserVerificationView.as_view(), name='account-verify',
+    ),
+    path(
+        'account/reset-password/',
         views.PasswordResetView.as_view(),
         name='reset-password',
     ),
     path(
-        'account/change-password',
+        'account/change-password/',
         views.PasswordChangeView.as_view(),
         name='change-password',
     ),

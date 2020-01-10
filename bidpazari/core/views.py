@@ -2,14 +2,11 @@ import asyncio
 import threading
 
 from django.contrib import messages
-from django.contrib.auth import (
-    authenticate,
-    login,
-    logout,
-    update_session_auth_hash,
-)
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView as DjangoLoginView
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import urlencode
@@ -18,6 +15,7 @@ from django.views.generic.base import TemplateView, View
 from bidpazari.core.exceptions import (
     BiddingNotAllowed,
     InsufficientBalanceError,
+    UserVerificationError,
 )
 from bidpazari.core.forms import (
     AccountDetailsForm,
@@ -81,13 +79,59 @@ class SignupView(View):
 
         if form.is_valid():
             form.save()
-            username = form.cleaned_data.get('username')
-            raw_password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=raw_password)
-            login(request, user)
-            return redirect(reverse('dashboard'))
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                "Your registration is almost complete!\n"
+                "We've sent you an email with a verification link. Check your inbox!",
+            )
+            return redirect(reverse('login'))
 
         return render(request, 'core/signup.html', {'form': form})
+
+
+class UserVerificationView(View):
+    def get(self, request, *args, **kwargs):
+        token = request.GET.get('token', '')
+        verification_number = request.GET.get('v', '')
+
+        try:
+            user = User.objects.get(auth_token=token)
+            user.verify(verification_number)
+            login(request, user)
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                "Your account is now verified! Enjoy bidding!",
+            )
+            return redirect(reverse('dashboard'))
+        except User.DoesNotExist:
+            messages.add_message(request, messages.ERROR, f"User does not exist.")
+            return redirect(reverse('index'))
+        except UserVerificationError as e:
+            messages.add_message(request, messages.ERROR, f"Could not verify user: {e}")
+            return redirect(reverse('index'))
+
+
+class LoginView(DjangoLoginView):
+    def form_valid(self, form):
+        user = form.get_user()
+
+        if user.verification_status == User.VERIFIED:
+            login(self.request, user)
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                "Your account has not yet been verified. Check your email!",
+            )
+            return redirect(reverse('login'))
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect(reverse('dashboard'))
+        return super().get(request, *args, **kwargs)
 
 
 class LogoutView(LoginRequiredMixin, View):
@@ -175,9 +219,7 @@ class PasswordChangeView(LoginRequiredMixin, View):
             )
             return redirect(reverse('account-details'))
 
-        return render(
-            request, 'core/change_password.html', {'password_change_form': form}
-        )
+        return render(request, 'core/change_password.html', {'form': form})
 
 
 class AddItemView(LoginRequiredMixin, View):
