@@ -556,3 +556,42 @@ class TransactionsView(LoginRequiredMixin, TemplateView):
             'deposits': deposits,
             'withdrawals': withdrawals,
         }
+
+
+class MarketplaceView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        user_id = request.GET.get('user_id', 'all')
+        item_type = request.GET.get('item_type', '')
+        status = request.GET.get('status', 'any')
+
+        on_sale = {'any': None, 'on_sale': True, 'not_on_sale': False}.get(status)
+
+        all_users = User.objects.all()
+
+        if user_id == 'all':
+            users = all_users
+        else:
+            users = User.objects.filter(id=user_id)
+
+        users_with_items = {}
+
+        for user in users:
+            items = user.list_items(item_type=item_type, on_sale=on_sale)
+
+            if items:
+                for item in items:
+                    item.current_uhi = UserHasItem.objects.get(item=item, is_sold=False)
+
+                users_with_items[user] = items
+
+        return render(
+            request,
+            'core/marketplace.html',
+            {
+                'selected_user_id': str(user_id),
+                'selected_item_type': item_type,
+                'selected_status': status,
+                'all_users': all_users,
+                'users_with_items': users_with_items,
+            },
+        )

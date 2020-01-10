@@ -58,6 +58,7 @@ legacy_urlpatterns = [
         views.CreateAuctionStep2View.as_view(),
         name='create-auction-confirm',
     ),
+    path('marketplace/', views.MarketplaceView.as_view(), name='marketplace'),
 ]
 
 ws_urlpatterns = [

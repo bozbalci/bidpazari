@@ -1,0 +1,95 @@
+{% extends "core/__base.html" %}
+
+{% load staticfiles %}
+
+{% load core.tags %}
+
+{% block title %}
+    Marketplace
+{% endblock %}
+
+{% block content %}
+    <h3>
+        Marketplace
+    </h3>
+
+    <form class="form-inline my-4" method="get" action="{% url 'marketplace' %}">
+        <label class="sr-only" for="user-id">User</label>
+        <div class="input-group mr-sm-2">
+            <div class="input-group-prepend">
+                <div class="input-group-text">Items of</div>
+            </div>
+            <select name="user_id" id="user-id" class="custom-select">
+                <option value="all">Everyone</option>
+                {% for user_ in all_users %}
+                    <option {% if selected_user_id == user_.id|stringformat:"s" %}selected{% endif %}
+                            value="{{ user_.id }}">{{ user_.get_full_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <label class="sr-only" for="item-type">Item type</label>
+        <div class="input-group mr-sm-2">
+            <div class="input-group-prepend">
+                <div class="input-group-text">of type</div>
+            </div>
+            <input type="text" class="form-control" id="item-type" name="item_type" placeholder="Kitchen"
+                   value="{{ selected_item_type }}"/>
+        </div>
+
+        <label class="sr-only" for="status">Status</label>
+        <div class="input-group mr-sm-2">
+            <div class="input-group-prepend">
+                <div class="input-group-text">and status is</div>
+            </div>
+            <select name="status" id="status" class="custom-select">
+                <option {% if selected_status == "any" %}selected{% endif %}
+                        value="any">any</option>
+                <option {% if selected_status == "on_sale" %}selected{% endif %}
+                        value="on_sale">on sale</option>
+                <option {% if selected_status == "not_on_sale" %}selected{% endif %}
+                        value="not_on_sale">not on sale</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-success ml-2">
+            Search
+        </button>
+    </form>
+
+    <table class="table table-hover table-responsive-sm">
+        <thead>
+        <tr>
+            <th></th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th>Owner</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for user_, items in users_with_items.items %}
+            {% for item in items %}
+                <tr>
+                    <td>
+                        <img style="max-height: 100px" src="{{ item.image|item_image }}" alt="{{ item.title }}"
+                             width="100"/>
+                    </td>
+                    <td>{{ item.title }}</td>
+                    <td>{{ item.description | default:"-" }}</td>
+                    <td>{{ item.item_type|default:"-" }}</td>
+                    <td>{{ user_.get_full_name }}</td>
+                    <td>
+                        {% if item.on_sale %}
+                            <a class="btn btn-info" href="{% url 'auction-details' pk=item.current_uhi.id %}">
+                                View Auction
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
