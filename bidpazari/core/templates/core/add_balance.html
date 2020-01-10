@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block content %}
-    <h2>Add Balance</h2>
+    <h3>Add Balance</h3>
     <form action="{% url "add-balance" %}" method="post">
     {% csrf_token %}
     {{ form|crispy }}

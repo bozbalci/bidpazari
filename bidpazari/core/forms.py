@@ -7,11 +7,40 @@ from bidpazari.core.models import Item, User
 class SignupForm(UserCreationForm):
     first_name = forms.CharField(max_length=30, required=True)
     last_name = forms.CharField(max_length=30, required=True)
-    email = forms.EmailField(max_length=254, required=True)
+    email = forms.EmailField(max_length=256, required=True)
 
     class Meta:
         model = User
         fields = ('username', 'first_name', 'last_name', 'email')
+
+
+class PasswordResetForm(forms.Form):
+    email = forms.EmailField(max_length=256, required=True)
+
+
+class AccountDetailsForm(forms.ModelForm):
+    first_name = forms.CharField(max_length=30, required=True)
+    last_name = forms.CharField(max_length=30, required=True)
+    email = forms.EmailField(max_length=256, required=True)
+
+    def __init__(self, user: User, *args, **kwargs):
+        self.user = user
+        kwargs['instance'] = self.user
+
+        initial = kwargs.pop('initial', {})
+        initial = {
+            **initial,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
+        }
+        kwargs['initial'] = initial
+
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'email')
 
 
 class ItemForm(forms.ModelForm):

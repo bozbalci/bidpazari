@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block content %}
-    <h2>Edit Item</h2>
+    <h3>Edit Item</h3>
     <form action="{% url 'edit-item' pk=item.id %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form|crispy }}

@@ -1,0 +1,25 @@
+{% extends "core/__base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}
+    Account
+{% endblock %}
+
+{% block content %}
+    <h3>Manage your account</h3>
+    <h4 class="mt-5">Personal details</h4>
+    <hr />
+    <form action="{% url 'account-details' %}" method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-success">
+            Confirm
+        </button>
+    </form>
+    <h4 class="mt-5">Change password</h4>
+    <hr />
+    <a href="{% url 'change-password' %}" class="btn btn-secondary">
+        Change password
+    </a>
+{% endblock %}

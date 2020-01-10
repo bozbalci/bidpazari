@@ -10,9 +10,7 @@
             <h1 class="display-4">Welcome to Bidpazari!</h1>
             <p class="lead">It's like eBay, but much worse.</p>
             <hr class="my-4">
-            <p>
-                {{ zen|safe }}
-            </p>
+            <p>Forgot your password? <a href="{% url 'reset-password' %}">Reset</a></p>
             <a class="btn btn-primary btn-lg mr-1" href="{% url "signup" %}" role="button">Sign up</a>
             <a class="btn btn-outline-primary btn-lg" href="{% url "login" %}" role="button">Log in</a>
         </div>

@@ -2,7 +2,13 @@ import asyncio
 import threading
 
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import (
+    authenticate,
+    login,
+    logout,
+    update_session_auth_hash,
+)
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -14,6 +20,7 @@ from bidpazari.core.exceptions import (
     InsufficientBalanceError,
 )
 from bidpazari.core.forms import (
+    AccountDetailsForm,
     AddBalanceForm,
     AuctionBidForm,
     CreateAuctionStep1Form,
@@ -21,10 +28,11 @@ from bidpazari.core.forms import (
     CreateHighestContributionAuctionForm,
     CreateIncrementAuctionForm,
     ItemForm,
+    PasswordResetForm,
     SignupForm,
 )
-from bidpazari.core.helpers import get_auction_or_404, zen
-from bidpazari.core.models import Item, Transaction, UserHasItem
+from bidpazari.core.helpers import get_auction_or_404
+from bidpazari.core.models import Item, Transaction, User, UserHasItem
 from bidpazari.core.runtime.auction import AuctionStatus
 from bidpazari.core.runtime.common import runtime_manager
 from bidpazari.core.runtime.exceptions import (
@@ -63,9 +71,6 @@ class WSClientView(TemplateView):
 class IndexView(TemplateView):
     template_name = 'core/index.html'
 
-    def get_context_data(self, **kwargs):
-        return {'zen': zen}
-
 
 class SignupView(View):
     def get(self, request, *args, **kwargs):
@@ -102,6 +107,77 @@ class DashboardView(LoginRequiredMixin, View):
             item.current_uhi = UserHasItem.objects.get(item=item, is_sold=False)
 
         return render(request, 'core/dashboard.html', {'items': items})
+
+
+class AccountDetailsView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        form = AccountDetailsForm(user=request.user)
+
+        return render(request, 'core/account_details.html', {'form': form,})
+
+    def post(self, request, *args, **kwargs):
+        form = AccountDetailsForm(user=request.user, data=request.POST)
+
+        if form.is_valid():
+            form.save()
+            messages.add_message(
+                request, messages.SUCCESS, "Your personal details have been updated."
+            )
+            return redirect(reverse('account-details'))
+
+        return render(request, 'core/account_details.html', {'form': form,})
+
+
+class PasswordResetView(View):
+    def get(self, request, *args, **kwargs):
+        form = PasswordResetForm()
+
+        return render(request, 'core/reset_password.html', {'form': form,})
+
+    def post(self, request, *args, **kwargs):
+        form = PasswordResetForm(request.POST)
+
+        if form.is_valid():
+            email = form.cleaned_data['email']
+
+            try:
+                user = User.objects.get(email=email)
+                # The following call resets password
+                user.change_password(new_password=None, old_password=None)
+            except User.DoesNotExist:
+                pass
+            finally:
+                messages.add_message(
+                    request,
+                    messages.SUCCESS,
+                    "If that user exists, then we've sent a mail with the new password.",
+                )
+                return redirect(reverse('index'))
+
+        return render(request, 'core/reset_password.html', {'form': form,})
+
+
+class PasswordChangeView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        form = PasswordChangeForm(user=request.user)
+
+        return render(request, 'core/change_password.html', {'form': form,})
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        form = PasswordChangeForm(data=request.POST, user=user)
+
+        if form.is_valid():
+            form.save()
+            update_session_auth_hash(request, form.user)
+            messages.add_message(
+                request, messages.SUCCESS, "Your password has been changed."
+            )
+            return redirect(reverse('account-details'))
+
+        return render(
+            request, 'core/change_password.html', {'password_change_form': form}
+        )
 
 
 class AddItemView(LoginRequiredMixin, View):

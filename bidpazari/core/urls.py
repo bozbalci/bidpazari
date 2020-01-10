@@ -9,6 +9,17 @@ legacy_urlpatterns = [
     path('login/', LoginView.as_view(template_name='core/login.html'), name='login',),
     path('logout/', views.LogoutView.as_view(), name='logout'),
     path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
+    path('account/', views.AccountDetailsView.as_view(), name='account-details',),
+    path(
+        'account/reset-password',
+        views.PasswordResetView.as_view(),
+        name='reset-password',
+    ),
+    path(
+        'account/change-password',
+        views.PasswordChangeView.as_view(),
+        name='change-password',
+    ),
     path('auctions/', views.AuctionsView.as_view(), name='auctions'),
     path(
         'auctions/<int:pk>/', views.AuctionDetailsView.as_view(), name='auction-details'
