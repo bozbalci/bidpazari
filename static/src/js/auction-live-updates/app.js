@@ -1,11 +1,64 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import {observable, runInAction} from 'mobx';
 import {observer} from 'mobx-react';
+import Badge from 'react-bootstrap/Badge';
+import moment from 'moment';
 
 import renderReact from 'utils/render-react';
 import Client from 'utils/bp-client';
 import bpMe from 'utils/bp-me';
+
+const liveUpdatesRoot = document.querySelector('#auction-live-updates-tbody');
+const liveUpdatesStatusRoot = document.querySelector('#auction-live-updates-status');
+
+class AuctionLiveUpdatesStatus extends React.Component {
+  constructor(props) {
+    super(props);
+
+    liveUpdatesStatusRoot.innerHTML = '';
+  }
+
+  render() {
+    return ReactDOM.createPortal(<Badge variant="success">Live</Badge>, liveUpdatesStatusRoot);
+  }
+}
+
+class AuctionLiveUpdatesRow extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.trElement = document.createElement('tr');
+  }
+
+  componentDidMount() {
+    liveUpdatesRoot.prepend(this.trElement);
+  }
+
+  componentWillUnmount() {
+    liveUpdatesRoot.removeChild(this.trElement);
+  }
+
+  render() {
+    const formattedTimestamp = moment(this.props.timestamp)
+      .utc()
+      .format('MMM. D, Y - HH:mm:ss');
+
+    return ReactDOM.createPortal(
+      <>
+        <td>{formattedTimestamp}</td>
+        <td>{this.props.message}</td>
+      </>,
+      this.trElement,
+    );
+  }
+
+  static propTypes = {
+    timestamp: PropTypes.string.isRequired,
+    message: PropTypes.string.isRequired,
+  };
+}
 
 @observer
 class AuctionLiveUpdates extends React.Component {
@@ -68,12 +121,17 @@ class AuctionLiveUpdates extends React.Component {
   render() {
     return (
       <>
-        <p>{this.watching ? 'Live' : 'Not live'}</p>
-        <p>
-          {this.feed.map((item, index) => (
-            <span key={index}>{JSON.stringify(item)}</span>
+        <AuctionLiveUpdatesStatus />
+        {this.feed
+          .slice(0)
+          .reverse()
+          .map((item, index) => (
+            <AuctionLiveUpdatesRow
+              key={index}
+              timestamp={item.timestamp}
+              message={item.result.msg}
+            />
           ))}
-        </p>
       </>
     );
   }

@@ -1,6 +1,3 @@
-import asyncio
-import json
-import time
 from decimal import Decimal
 from typing import Optional, Union
 
@@ -9,6 +6,7 @@ from bidpazari.core.exceptions import (
     InvalidPassword,
     UserVerificationError,
 )
+from bidpazari.core.helpers import get_human_readable_activity_message
 from bidpazari.core.models import Item, User
 from bidpazari.core.runtime.auction import Auction
 from bidpazari.core.runtime.common import runtime_manager
@@ -307,11 +305,17 @@ async def watch_auction(context: CommandContext, auction_id: int):
 
     @push_notification(context.websocket)
     def notify(**kwargs):
-        return {
+        notification_object = {
             'domain': 'auction',
             'type': kwargs.get('type'),
             'data': kwargs.get('data'),
         }
+
+        notification_object['msg'] = get_human_readable_activity_message(
+            notification_object
+        )
+
+        return notification_object
 
     auction.register_user_to_updates(notify)
     return {}

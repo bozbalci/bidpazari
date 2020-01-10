@@ -118,25 +118,28 @@
             </button>
         </form>
     {% endif %}
-    {% if auction.activity %}
-        <h4 class="mt-5">Activity</h4>
-        <table class="table table-sm">
-            <thead>
+    <h4 class="mt-5">
+        Activity
+        <span id="auction-live-updates-status">
+            <span class="badge badge-warning">Connecting...</span>
+        </span>
+    </h4>
+    <table class="table table-sm">
+        <thead>
+        <tr>
+            <th>Time</th>
+            <th>Event</th>
+        </tr>
+        </thead>
+        <tbody id="auction-live-updates-tbody">
+        {% for act in auction.activity %}
             <tr>
-                <th>Time</th>
-                <th>Event</th>
+                <td>{{ act.ts }}</td>
+                <td>{{ act.msg }}</td>
             </tr>
-            </thead>
-            <tbody>
-            {% for act in auction.activity %}
-                <tr>
-                    <td>{{ act.ts }}</td>
-                    <td>{{ act.msg }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
     <div
         class="app-loader app-auction-live-updates"
         data-app-id="auction-live-updates"
