@@ -12,6 +12,7 @@ import bpMe from 'utils/bp-me';
 
 const liveUpdatesRoot = document.querySelector('#auction-live-updates-tbody');
 const liveUpdatesStatusRoot = document.querySelector('#auction-live-updates-status');
+const liveUpdatesPriceRoot = document.querySelector('#auction-live-updates-price');
 
 class AuctionLiveUpdatesStatus extends React.Component {
   constructor(props) {
@@ -22,6 +23,18 @@ class AuctionLiveUpdatesStatus extends React.Component {
 
   render() {
     return ReactDOM.createPortal(<Badge variant="success">Live</Badge>, liveUpdatesStatusRoot);
+  }
+}
+
+class AuctionLiveUpdatesPrice extends React.Component {
+  constructor(props) {
+    super(props);
+
+    liveUpdatesPriceRoot.innerHTML = '';
+  }
+
+  render() {
+    return ReactDOM.createPortal(`${this.props.price}`, liveUpdatesPriceRoot);
   }
 }
 
@@ -66,12 +79,12 @@ class AuctionLiveUpdates extends React.Component {
   @observable loggedIn = false;
   @observable watching = false;
   @observable feed = [];
+  @observable currentPrice = null;
 
   constructor(props) {
     super(props);
 
     this.client = new Client();
-    window.client = this.client;
 
     this.client.on.open = data => {
       runInAction(() => {
@@ -110,6 +123,10 @@ class AuctionLiveUpdates extends React.Component {
     };
 
     this.client.on.notification_auction = data => {
+      runInAction(() => {
+        this.currentPrice = data.result.current_price;
+      });
+
       this.feed.unshift(data);
     };
   }
@@ -122,6 +139,7 @@ class AuctionLiveUpdates extends React.Component {
     return (
       <>
         <AuctionLiveUpdatesStatus />
+        {this.currentPrice ? <AuctionLiveUpdatesPrice price={this.currentPrice} /> : null}
         {this.feed
           .slice(0)
           .reverse()

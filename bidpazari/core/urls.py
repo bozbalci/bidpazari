@@ -28,6 +28,9 @@ legacy_urlpatterns = [
     ),
     path('auctions/', views.AuctionsView.as_view(), name='auctions'),
     path(
+        'auctions/monitor/', views.AuctionMonitorView.as_view(), name='auction-monitor'
+    ),
+    path(
         'auctions/<int:pk>/', views.AuctionDetailsView.as_view(), name='auction-details'
     ),
     path(

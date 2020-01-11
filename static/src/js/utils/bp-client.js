@@ -17,8 +17,10 @@ export default class Client {
     // Command handlers
     login: null,
     watch_auction: null,
+    watch_items: null,
     // Notifications
     notification_auction: null,
+    notification_item: null,
   };
 
   handleEvent(eventType, data) {
@@ -227,6 +229,8 @@ export default class Client {
   onNotification(data) {
     if (data.result.domain === 'auction') {
       this.handleEvent('notification_auction', data);
+    } else if (data.result.domain === 'item') {
+      this.handleEvent('notification_item', data);
     }
   }
 }

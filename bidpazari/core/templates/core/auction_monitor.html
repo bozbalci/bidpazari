@@ -1,0 +1,16 @@
+{% extends "core/__base.html" %}
+
+{% load argonauts %}
+
+{% block title %}
+    WebSocket Client
+{% endblock %}
+
+{% block content %}
+    <div
+        class="app-loader app-auction-monitor"
+        data-app-id="auction-monitor"
+        data-app-props="{{ props|json|force_escape }}"
+    >
+    </div>
+{% endblock %}

@@ -16,6 +16,7 @@ from bidpazari.core.models import Transaction, UserHasItem
 from bidpazari.core.runtime.exceptions import InvalidAuctionStatus
 from bidpazari.core.runtime.strategies import BiddingStrategyFactory
 from bidpazari.core.runtime.watchers import AuctionWatcher
+from bidpazari.core.templatetags.core.tags import money
 
 
 class AuctionStatus:
@@ -169,10 +170,12 @@ Bidding Details
             'id': self.id,
             'status': self.status,
             'bidding_strategy': bidding_strategy_name,
+            'item_image': str(self.item.image),
             'item': self.item.title,
             'description': self.item.description,
+            'item_type': self.item.item_type,
             'owner': self.owner.get_full_name(),
-            'current_price': self.bidding_strategy.get_current_price(),
+            'current_price': money(self.bidding_strategy.get_current_price()),
             'current_winner': current_winner_line,
             'winning_amount': winning_amount,
             'bidding_details': self.bidding_strategy.get_tooltip_text(),

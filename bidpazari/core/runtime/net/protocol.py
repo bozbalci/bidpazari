@@ -22,6 +22,7 @@ from bidpazari.core.runtime.net.decorators import (
 )
 from bidpazari.core.runtime.net.exceptions import CommandFailed, InvalidCommand
 from bidpazari.core.runtime.user import RuntimeUser
+from bidpazari.core.templatetags.core.tags import money
 
 COMMANDS = {}
 
@@ -199,6 +200,7 @@ async def watch_items(context: CommandContext, item_type: str = None):
     @push_notification(context.websocket)
     def notify(auction: Auction):
         return {
+            'domain': 'item',
             'auction': {**auction.to_json()},
         }
 
@@ -309,6 +311,7 @@ async def watch_auction(context: CommandContext, auction_id: int):
             'domain': 'auction',
             'type': kwargs.get('type'),
             'data': kwargs.get('data'),
+            'current_price': money(auction.bidding_strategy.current_price),
         }
 
         notification_object['msg'] = get_human_readable_activity_message(

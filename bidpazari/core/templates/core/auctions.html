@@ -8,7 +8,6 @@
 
 {% block content %}
     <h3>Auctions</h3>
-    <p>Click on "View" to participate in an auction.</p>
     {% if auctions %}
         {% for auction in auctions %}
             <div class="card mb-3" style="max-width: 540px;">
@@ -49,4 +48,5 @@
     {% else %}
         <p>There are currently no auctions.</p>
     {% endif %}
+    <p>Don't want to miss an auction? <a href="{% url 'auction-monitor' %}">Try the Monitor!</a></p>
 {% endblock %}

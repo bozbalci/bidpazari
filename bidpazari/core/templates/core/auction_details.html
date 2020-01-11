@@ -27,7 +27,9 @@
                     This auction has been closed.
                 </div>
             {% endif %}
-            <h4 class="my-4">Price: <b>{{ auction.current_price|money }}</b></h4>
+            <h4 class="my-4">Price:
+                <b id="auction-live-updates-price">{{ auction.current_price|money }}</b>
+            </h4>
             <dl class="row mt-3">
                 <dt class="col-sm-4">Owner</dt>
                 <dd class="col-sm-8">

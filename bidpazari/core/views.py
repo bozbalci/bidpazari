@@ -388,6 +388,10 @@ class AuctionsView(LoginRequiredMixin, TemplateView):
         return {'auctions': auctions}
 
 
+class AuctionMonitorView(LoginRequiredMixin, TemplateView):
+    template_name = 'core/auction_monitor.html'
+
+
 class AuctionDetailsView(LoginRequiredMixin, TemplateView):
     template_name = 'core/auction_details.html'
 
