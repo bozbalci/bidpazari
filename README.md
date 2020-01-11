@@ -4,17 +4,23 @@ CENG445 Term Project, developed by @akca and @bozbalci.
 
 ## Installation
 
-Bidpazari relies on Django in order to persist its models. In
-order to run the tests, you need to first install Python 3.8 or
-greater, and then create a virtualenv.
+Bidpazari requires Python 3.8 or greater. You may use [pyenv](https://github.com/pyenv/pyenv) in order to
+manage multiple versions of Python without changing the global Python version. After configuration is done,
+run the following command to set the global Python version:
+
+    $ pyenv global 3.8.0
+    $ python --version  # should be 3.8.0
+
+Install Poetry in order to manage dependencies:
+
+    $ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+
+Create a virtualenv and install dependencies:
 
     $ python -mvenv ~/.virtualenvs/bidpazari
-
-Activate the virtualenv, and install the dependencies (requires Poetry):
-
     $ source ~/.virtualenvs/bidpazari/bin/activate
     (bidpazari) $ poetry install
-    $ cd static; npm install
+    (bidpazari) $ cd static; npm install
 
 ## Development
 
