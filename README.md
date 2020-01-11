@@ -34,6 +34,12 @@ After running webpack-dev-server or creating a static build, run the Django serv
 
     DJANGO_SETTINGS_MODULE=bidpazari.settings.dev ./manage.py runserver
 
+If it complains about unapplied migrations, run
+
+    ./manage.py makemigrations && ./manage.py migrate
+
+in order to create a DB and apply migrations.
+
 Initially, the WebSocket server will not be running. In order to run it,
 visit
 
@@ -41,26 +47,6 @@ visit
 
 in order to start the WebSocket thread within the Django server.
 
-## TODO
-
-### Backend
-- [ ] Refactor strategies
-
-### Frontend
-- [ ] Write a custom theme
-- [ ] Redesign auctions page
-- [ ] Account management
-
-### Deployment
-- [ ] Automate the WebSocket server initialization
-- [ ] Create a deployment pipeline
-
-### Quality
-- [ ] ESLint
-- [ ] Stylelint
-- [ ] Django tests
-- [ ] JS tests
-    
 Happy hacking!
 
 -Fatih, Berk
