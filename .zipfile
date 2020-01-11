@@ -1,9 +1,9 @@
 bidpazari/
-js/
 static/assets/
+static/src/
+static/webpack/
+static/.prettierrc.json
+static/package.json
 manage.py
-package.json
 pyproject.toml
 README.md
-webpack.config.js
-webpack-dev-server.js
